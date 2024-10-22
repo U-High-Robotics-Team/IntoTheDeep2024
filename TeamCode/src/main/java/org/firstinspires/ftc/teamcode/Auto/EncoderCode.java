@@ -20,10 +20,11 @@ public class EncoderCode extends LinearOpMode {
     @Override
     public void runOpMode() {
         // Initialize the motors
-        BLeft = hardwareMap.get(DcMotor.class, "BLeft");
-        BRight = hardwareMap.get(DcMotor.class, "BRight");
-        FLeft = hardwareMap.get(DcMotor.class, "FLeft");
-        FRight = hardwareMap.get(DcMotor.class, "FRight");
+        BLeft = hardwareMap.get(DcMotor.class, "backleft");
+        BRight = hardwareMap.get(DcMotor.class, "backright");
+        FLeft = hardwareMap.get(DcMotor.class, "frontleft");
+        FRight = hardwareMap.get(DcMotor.class, "frontright");
+
 
 
         // reset encoders and start
