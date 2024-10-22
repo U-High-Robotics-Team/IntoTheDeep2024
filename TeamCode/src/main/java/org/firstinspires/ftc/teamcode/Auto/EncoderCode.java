@@ -31,8 +31,8 @@ public class EncoderCode extends LinearOpMode {
 
         BLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         BRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        BRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
 
         BLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -51,31 +51,43 @@ public class EncoderCode extends LinearOpMode {
 
         BLeft.setTargetPosition(targetPosition);
         BRight.setTargetPosition(targetPosition);
-        BLeft.setTargetPosition(targetPosition);
-        BRight.setTargetPosition(targetPosition);
+        FLeft.setTargetPosition(targetPosition);
+        FRight.setTargetPosition(targetPosition);
 
         BLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        BLeft.setTargetPosition(targetPosition);
+        BRight.setTargetPosition(targetPosition);
+        FLeft.setTargetPosition(targetPosition);
+        FRight.setTargetPosition(targetPosition);
+
+
         BLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        BLeft.setTargetPosition(targetPosition);
-        BRight.setTargetPosition(targetPosition);
-        BLeft.setTargetPosition(targetPosition);
-        BRight.setTargetPosition(targetPosition);
-
-        leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-        leftDrive.setPower(1.0); // Full power
-        rightDrive.setPower(1.0); // Full power
+        FLeft.setTargetPosition(DcMotor.RunMode.RUN_TO_POSITION);
+        FRight.setTargetPosition(DcMotor.RunMode.RUN_TO_POSITION);
+        
+        BLeft.setPower(1.0);
+        BRight.setPower(1.0);
+        FLeft.setPower(1.0);
+        FRight.setPower(1.0);
 
         // Stop the motors
-        leftDrive.setPower(0);
-        rightDrive.setPower(0);
+
+        BLeft.setPower(0);
+        BRight.setPower(0);
+        FLeft.setPower(0);
+        FRight.setPower(0);
 
         // Reset motor modes for future movements
-        leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        BLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        BRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    
     }
 }
