@@ -33,13 +33,13 @@ public class DriftCode extends OpMode {
     public void init(){
 
         // connect to hardware map
-        BLeft = hardwareMap.dcMotor.get("BLeft");
-        BRight = hardwareMap.dcMotor.get("BRight");
-        FLeft  = hardwareMap.dcMotor.get("FLeft");
-        FRight = hardwareMap.dcMotor.get("FRight");
+        BLeft = hardwareMap.get(DcMotor.class, "backleft");
+        BRight = hardwareMap.get(DcMotor.class, "backright");
+        FLeft = hardwareMap.get(DcMotor.class, "frontleft");
+        FRight = hardwareMap.get(DcMotor.class, "frontright");
 
         // reverse the motor directions
-        BRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        BLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FLeft.setDirection(DcMotorSimple.Direction.REVERSE);
 
     }
