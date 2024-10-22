@@ -15,10 +15,10 @@ public class BasicAuto extends LinearOpMode {
 
     @Override
     public void runOpMode () {
-        BLeft = hardwareMap.get(DcMotor.class, "BLeft");
-        BRight = hardwareMap.get(DcMotor.class, "BRight");
-        FLeft = hardwareMap.get(DcMotor.class, "FLeft");
-        FRight = hardwareMap.get(DcMotor.class, "FRight");
+        BLeft = hardwareMap.get(DcMotor.class, "backleft");
+        BRight = hardwareMap.get(DcMotor.class, "backright");
+        FLeft = hardwareMap.get(DcMotor.class, "frontleft");
+        FRight = hardwareMap.get(DcMotor.class, "frontright");
 
         // reverse the motors
         BRight.setDirection(DcMotorSimple.Direction.REVERSE);
