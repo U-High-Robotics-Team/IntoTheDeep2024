@@ -14,8 +14,8 @@ public class DriftCode extends OpMode {
     private DcMotor BRight;
     private DcMotor FLeft;
     private DcMotor FRight;
-//    private DcMotor elevator;
-//    private DcMotor arm;
+    private DcMotor elevator;
+    private DcMotor arm;
 
     public void moveRobot(){
         double vertical;
@@ -33,22 +33,41 @@ public class DriftCode extends OpMode {
         BLeft.setPower((-pivot + (-vertical + horizontal)));
     }
 
-//    public void moveArm() {
-//
-//        //TODO: Find these values with debugging
-//        double maxPosition = 100;
-//        double minPosition = 0;
-//
-//        double speed = gamepad2.left_stick_y;
-//
-//        if(arm.getCurrentPosition() <= maxPosition && speed > 0){
-//            arm.setPower(gamepad2.left_stick_y);
-//        }else if(arm.getCurrentPosition() >= minPosition && speed < 0){
-//            arm.setPower(gamepad2.left_stick_y);
-//        }else{
-//            arm.setPower(0);
-//        }
-//    }
+    public void moveArm(){
+        double speed = -gamepad2.right_stick_y;
+
+
+
+        arm.setPower(speed);
+    }
+
+    public void moveLift() {
+        // Define the limits
+        double maxPosition = 6500; // Maximum position (top)
+        double minPosition = 0; // Minimum position (bottom)
+
+        // Allows for sensitive input
+        double speed = Math.pow(gamepad2.left_stick_y, 3);
+        telemetry.addData("Speed:", speed);
+
+        // Determine if the elevator is within bounds
+        if (elevator.getCurrentPosition() < maxPosition && speed > 0) {
+            // Prevent moving up if at the max position
+            telemetry.addData("Elevator going out", 1);
+            elevator.setPower(speed);
+        } else if (elevator.getCurrentPosition() > minPosition && speed < 0) {
+            // Prevent moving down if at the min position
+            telemetry.addData("Elevator going in", 2);
+            elevator.setPower(speed);
+        } else {
+            // Set elevator power based on joystick input if within bounds
+            telemetry.addData("Elevator stopped", 3);
+            elevator.setPower(0);
+        }
+    }
+
+
+
 
     public void init(){
         // connect to hardware map
@@ -56,16 +75,22 @@ public class DriftCode extends OpMode {
         BRight = hardwareMap.get(DcMotor.class, "backright");
         FLeft = hardwareMap.get(DcMotor.class, "frontleft");
         FRight = hardwareMap.get(DcMotor.class, "frontright");
-//        elevator = hardwareMap.get(DcMotor.class, "elevator");
-//        arm = hardwareMap.get(DcMotor.class, "arm");
+        elevator = hardwareMap.get(DcMotor.class, "elevator");
+        arm = hardwareMap.get(DcMotor.class, "arm");
 
         // setting encoders
-//        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-//        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevator.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        elevator.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        arm.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        arm.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
 
         // reverse the motor directions
         BLeft.setDirection(DcMotorSimple.Direction.REVERSE);
         FLeft.setDirection(DcMotorSimple.Direction.REVERSE);
+        elevator.setDirection(DcMotorSimple.Direction.REVERSE);
 
 
     }
@@ -76,9 +101,10 @@ public class DriftCode extends OpMode {
 
     public void loop(){
         moveRobot();
-//        moveArm();
-//
-//        telemetry.addData("Arm Position", arm.getCurrentPosition());
-//        telemetry.update();
+        moveLift();
+        moveArm();
+
+        telemetry.addData("Elevator Position", elevator.getCurrentPosition());
+        telemetry.update();
     }
 }

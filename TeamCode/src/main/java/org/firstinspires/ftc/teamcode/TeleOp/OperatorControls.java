@@ -12,29 +12,29 @@ public class OperatorControls extends OpMode {
     private DcMotor elevator;
     private DcMotor arm;
 
-//    public void moveArm() {
-//        //TODO: Find these values with debugging
-//        double maxPosition = 100;
-//        double minPosition = 0;
-//
-//        double speed = gamepad2.right_stick_y;
-//
-//        if(arm.getCurrentPosition() <= maxPosition && speed > 0){
-//            arm.setPower(gamepad2.left_stick_y);
-//        }else if(arm.getCurrentPosition() >= minPosition && speed < 0){
-//            arm.setPower(gamepad2.left_stick_y);
-//        }else{
-//            arm.setPower(0);
-//        }
-//
-//        telemetry.addData("Arm Position", arm.getCurrentPosition());
-//        telemetry.update();
-//    }
+    public void moveArm() {
+        //TODO: Find these values with debugging
+        double maxPosition = 2000;
+        double minPosition = 0;
+
+        double speed = gamepad2.right_stick_y;
+
+        if(arm.getCurrentPosition() <= maxPosition && speed > 0){
+            arm.setPower(gamepad2.left_stick_y);
+        }else if(arm.getCurrentPosition() >= minPosition && speed < 0){
+            arm.setPower(gamepad2.left_stick_y);
+        }else{
+            arm.setPower(0);
+        }
+
+        telemetry.addData("Arm Position", arm.getCurrentPosition());
+    }
 
     public void moveLift() {
         //TODO: Find these values with debugging
         double maxPosition = 0;
-        double minPosition = -6200;
+        double minPosition = -6100;
+
 
         double speed = gamepad2.left_stick_y;
 
@@ -47,7 +47,6 @@ public class OperatorControls extends OpMode {
         }
 
         telemetry.addData("Elevator Position", elevator.getCurrentPosition());
-        telemetry.update();
     }
 
     public void init(){
@@ -71,11 +70,9 @@ public class OperatorControls extends OpMode {
 
 
     public void loop(){
-//        moveArm();
+        moveArm();
         moveLift();
 
-        telemetry.addData("Elevator Position", elevator.getCurrentPosition());
-        telemetry.addData("Arm Position", arm.getCurrentPosition());
         telemetry.addData("GamePad2.RightStickY", gamepad2.right_stick_y);
         telemetry.addData("GamePad2.LeftStickY", gamepad2.left_stick_y);
         telemetry.update();
