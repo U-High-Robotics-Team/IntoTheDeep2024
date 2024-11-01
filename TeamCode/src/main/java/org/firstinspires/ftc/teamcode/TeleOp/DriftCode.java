@@ -21,7 +21,7 @@ public class DriftCode extends OpMode {
         double vertical;
         double horizontal;
         double pivot;
-        double speed = 0.75;
+        double speed = 0.5;
 
         vertical = speed * gamepad1.left_stick_y;
         horizontal = speed * -gamepad1.left_stick_x;
@@ -35,11 +35,24 @@ public class DriftCode extends OpMode {
 
     public void moveArm(){
         double speed = -gamepad2.right_stick_y;
+        
+        double maxAngle = 90; // Maximum Angle
+        double minAngle = -90; // Minimum position
+        
 
-
-
-        arm.setPower(speed);
-    }
+         if (arm.getCurrentAngle() < maxAngle) {
+            // Prevent moving up if at the max Angle
+            telemetry.addData("arm rotating", 1);//add angular displacement
+            arm.setPower(speed);
+        } else if (arm.getCurrentPosition() > maxAngle) {
+            // Prevent moving down if at the min angle
+            telemetry.addData("arm rotating 2", 2);
+            arm.setPower(speed);
+        } else {
+            // Set arm power based on joystick input if within bounds
+            telemetry.addData("arm stopped", 3);
+            arm.setPower(0); 
+         }
 
     public void moveLift() {
         // Define the limits
@@ -63,6 +76,7 @@ public class DriftCode extends OpMode {
             // Set elevator power based on joystick input if within bounds
             telemetry.addData("Elevator stopped", 3);
             elevator.setPower(0);
+            
         }
     }
 
