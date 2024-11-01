@@ -44,7 +44,7 @@ public class DriftCode extends OpMode {
             // Prevent moving up if at the max Angle
             telemetry.addData("arm rotating", 1);//add angular displacement
             arm.setPower(speed);
-        } else if (arm.getCurrentPosition() > maxAngle) {
+        } else if (arm.getCurrentAngle() > maxAngle) {
             // Prevent moving down if at the min angle
             telemetry.addData("arm rotating 2", 2);
             arm.setPower(speed);
