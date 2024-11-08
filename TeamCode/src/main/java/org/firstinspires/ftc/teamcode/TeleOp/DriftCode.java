@@ -15,7 +15,7 @@ public class DriftCode extends OpMode {
     private DcMotor BRight;
     private DcMotor FLeft;
     private DcMotor FRight;
-    
+
     public void moveRobot(){
         double vertical;
         double horizontal;

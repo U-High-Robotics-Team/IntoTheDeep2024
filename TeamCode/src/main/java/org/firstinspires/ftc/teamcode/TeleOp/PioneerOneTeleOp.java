@@ -1,6 +1,5 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.TeleOp;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -8,8 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-// THIS OPMODE IS COPY AND PASTED AS THE ONBOT JAVA JUST SO WE CAN KEEP TRACK ON GITHUB
-@Disabled
+
 @TeleOp(name = "Pioneer One TeleOp")
 public class PioneerOneTeleOp extends OpMode {
 
@@ -21,8 +19,8 @@ public class PioneerOneTeleOp extends OpMode {
     final int SHOULDER_MAX = 1500;
     final int SHOULDER_MIN = 0;
     final double SHOULDER_POWER = 0.5;
-    final double WRIST_MAX = 0.7;
-    final double WRIST_MIN = -1;
+    final double WRIST_MAX = 0.6;
+    final double WRIST_MIN = 0.0;
     final double CLAW_MAX = 0.6;
     final double CLAW_MIN = 0;
 
@@ -79,8 +77,8 @@ public class PioneerOneTeleOp extends OpMode {
 
         }
 
-        wrist.setPosition((int)wristTarget);
-        telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", -1.0, wristTarget);
+        wrist.setPosition(wristTarget);
+        telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
     }
 
 
@@ -102,7 +100,7 @@ public class PioneerOneTeleOp extends OpMode {
         }
 
         claw.setPosition(clawTarget);
-        telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", -1.0, clawTarget);
+        telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
 
 
