@@ -81,10 +81,16 @@ public class BlueBasketAuto extends LinearOpMode {
 
         waitForStart();
 
+        // open claw
         clawPosition(CLAW_MIN);
 
+
+        strafe(50);   // strafe left
+
+        sleep(1000);  // wait till strafe is complete
+
         // these will happen at the same time
-        movePosition(-720);  // move backward by 1440 encoder ticks
+        movePosition(-720);  // move backward
 
         liftShoulder(SHOULDER_MAX); // lift shoulder to release position
 
@@ -94,9 +100,9 @@ public class BlueBasketAuto extends LinearOpMode {
             telemetry.update();
         }
 
-        rotate(-450);
+        rotate(-450); // rotate to align with basket
 
-        sleep(2000);
+        sleep(2000); // wait for rotate to complete
 
         extendSlide(SLIDE_Y_MAX); // extend the slide to basket position
 
@@ -105,26 +111,23 @@ public class BlueBasketAuto extends LinearOpMode {
             telemetry.update();
         }
 
-        wristPosition(WRIST_MIN);
+        wristPosition(WRIST_MIN); // flick claw back
 
-        movePosition(-80);// M=move the wrist to release position
+        movePosition(-80); // move back to get above the basket
 
-        sleep(2000);
+        sleep(2000); // waiat for the movement to com
 
         clawPosition(CLAW_MAX);  // open the claw to release the object
 
-        movePosition(400);
+        movePosition(400); // move forward to leave the basket
 
-        sleep(2000);
+        sleep(2000); //  wait until all the way out
 
-        extendSlide(SLIDE_MIN);
+        extendSlide(SLIDE_MIN); // bring back the slide
 
-        sleep(4000);
+        sleep(4000); // wait untill the slide is all the way back
 
-        liftShoulder(SHOULDER_MIN);
-
-
-
+        liftShoulder(SHOULDER_MIN); // bring shoulder back to start position
 
         telemetry.addData("Task Complete", "All movements finished.");
         telemetry.update();
@@ -135,7 +138,6 @@ public class BlueBasketAuto extends LinearOpMode {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
-        //slide.setPower(0);
         telemetry.addData("Slide Current / Target ", "(%d, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
@@ -163,7 +165,6 @@ public class BlueBasketAuto extends LinearOpMode {
         FLeft.setPower(Math.abs(MOTOR_POWER));
         FRight.setPower(Math.abs(MOTOR_POWER));
 
-
         telemetry.addData("Motor Current / Target ", "(%d, %.2f)", FLeft.getCurrentPosition(), motorTarget);
     }
 
@@ -174,6 +175,28 @@ public class BlueBasketAuto extends LinearOpMode {
         BRight.setTargetPosition(BRight.getCurrentPosition() + -(int)motorTarget);
         FLeft.setTargetPosition(FLeft.getCurrentPosition() + (int)motorTarget);
         FRight.setTargetPosition(FRight.getCurrentPosition() + -(int)motorTarget);
+
+        BLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        BLeft.setPower(Math.abs(MOTOR_POWER));
+        BRight.setPower(Math.abs(MOTOR_POWER));
+        FLeft.setPower(Math.abs(MOTOR_POWER));
+        FRight.setPower(Math.abs(MOTOR_POWER));
+
+
+        telemetry.addData("Motor Current / Target ", "(%d, %.2f)", FLeft.getCurrentPosition(), motorTarget);
+    }
+
+    public void strafe(double encoderTicks) {
+        motorTarget = encoderTicks;
+
+        BLeft.setTargetPosition(BLeft.getCurrentPosition() + (int)motorTarget);
+        BRight.setTargetPosition(BRight.getCurrentPosition() + -(int)motorTarget);
+        FLeft.setTargetPosition(FLeft.getCurrentPosition() + -(int)motorTarget);
+        FRight.setTargetPosition(FRight.getCurrentPosition() + (int)motorTarget);
 
         BLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         BRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
