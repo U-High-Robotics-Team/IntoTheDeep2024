@@ -3,17 +3,16 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
 
 @TeleOp(name = "Pioneer One TeleOp")
-public class PioneerOneTeleOp extends OpMode {
+public class PioneerOneTeleop extends OpMode {
 
     // Performance constants
-    final int SLIDE_Y_MAX = 6000;
-    final int SLIDE_X_MAX = 3000; // Maximum position (top)
+    final int SLIDE_Y_MAX = 2400;
+    final int SLIDE_X_MAX = 1000; // Maximum position (top)
     final int SLIDE_MIN = 0; // Minimum position (bottom)
     final double SLIDE_POWER = 1.0;
     final int SHOULDER_MAX = 1500;
@@ -21,6 +20,7 @@ public class PioneerOneTeleOp extends OpMode {
     final double SHOULDER_POWER = 0.5;
     final double WRIST_MAX = 0.6;
     final double WRIST_MIN = 0.0;
+    final double WRIST_CLIP = 0.3;
     final double CLAW_MAX = 0.6;
     final double CLAW_MIN = 0;
 
@@ -46,11 +46,15 @@ public class PioneerOneTeleOp extends OpMode {
         double vertical;
         double horizontal;
         double pivot;
-        double speed = 0.75;
+        double speed = 0.5;
 
-        vertical = speed * gamepad1.left_stick_y;
-        horizontal = speed * -gamepad1.left_stick_x;
-        pivot = speed * -gamepad1.right_stick_x;
+
+        double leftStickY = Math.pow(gamepad1.left_stick_y, 3);
+        double leftStickX = Math.pow(gamepad1.left_stick_x, 3);
+        double rightStickX = Math.pow(gamepad1.right_stick_x, 3);
+        vertical = speed * leftStickY;
+        horizontal = speed * -leftStickX;
+        pivot = speed * -rightStickX;
 
 
         FRight.setPower((pivot + (-vertical + horizontal)));
@@ -75,6 +79,8 @@ public class PioneerOneTeleOp extends OpMode {
 
             wristTarget = WRIST_MAX;
 
+        } else if (gamepad2.right_bumper){
+            wristTarget = WRIST_CLIP;
         }
 
         wrist.setPosition(wristTarget);

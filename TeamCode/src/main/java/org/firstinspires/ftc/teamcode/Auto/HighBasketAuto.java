@@ -12,12 +12,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 
 
-@Autonomous(name = "BlueBasketAuto")
-public class BlueBasketAuto extends LinearOpMode {
+@Autonomous(name = "HighBasketAuto")
+public class HighBasketAuto extends LinearOpMode {
 
     // Performance constants
-    final int SLIDE_Y_MAX = 4300; // Maximum position (for release)
-    final int SLIDE_X_MAX = 3000; // Maximum position (for intake)
+    final int SLIDE_Y_MAX = 2400;
+    final int SLIDE_X_MAX = 1000; // Maximum position (for intake)
     final int SLIDE_MIN = 0; // Minimum position (bottom)
     final double SLIDE_POWER = 0.5;
     final double MOTOR_POWER = 0.2;
@@ -85,7 +85,7 @@ public class BlueBasketAuto extends LinearOpMode {
         clawPosition(CLAW_MIN);
 
 
-        strafe(50);   // strafe left
+        strafe(400);   // strafe left
 
         sleep(1000);  // wait till strafe is complete
 
@@ -100,7 +100,7 @@ public class BlueBasketAuto extends LinearOpMode {
             telemetry.update();
         }
 
-        rotate(-450); // rotate to align with basket
+        rotate(-380); // rotate to align with basket
 
         sleep(2000); // wait for rotate to complete
 
@@ -128,6 +128,8 @@ public class BlueBasketAuto extends LinearOpMode {
         sleep(4000); // wait untill the slide is all the way back
 
         liftShoulder(SHOULDER_MIN); // bring shoulder back to start position
+
+        sleep(2000);
 
         telemetry.addData("Task Complete", "All movements finished.");
         telemetry.update();

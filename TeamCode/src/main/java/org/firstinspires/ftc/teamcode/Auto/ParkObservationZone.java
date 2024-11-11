@@ -84,7 +84,7 @@ public class ParkObservationZone extends LinearOpMode {
 
         while(opModeIsActive()){
             clawPosition(CLAW_MIN);
-            movePosition(-1440);
+            movePosition(1440);
         }
 
         telemetry.addData("Task Complete", "All movements finished.");
