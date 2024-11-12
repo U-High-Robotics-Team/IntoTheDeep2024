@@ -32,6 +32,11 @@ public class DriftCode extends OpMode {
         BLeft.setPower((-pivot + (-vertical + horizontal)));
     }
 
+    // creating gamepadInput
+    public void gamepadInput(){
+
+    }
+
     public void init(){
         // connect to hardware map
         BLeft = hardwareMap.get(DcMotor.class, "backleft");

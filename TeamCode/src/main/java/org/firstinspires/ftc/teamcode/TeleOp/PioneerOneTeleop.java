@@ -92,9 +92,6 @@ public class PioneerOneTeleop extends OpMode {
         double STEP = 0.02;
 
         if (gamepad2.x) {
-            // TODO: Try to make it binary operations
-            // clawTarget = Math.max(clawTarget - STEP, CLAW_MIN);
-
             clawTarget = CLAW_MIN;
 
         } else if (gamepad2.b) {
@@ -151,21 +148,10 @@ public class PioneerOneTeleop extends OpMode {
         }
         slideTarget = Math.max(SLIDE_MIN, Math.min(max, slideTarget + input));
 
-        //double power = -Math.pow(gamepad2.right_stick_y, 3);
-
-        // Determine if the elevator is outside of bounds and limit target
-        //if (power < 0) {
-        //    slideTarget = Math.max(slideTarget - STEP, SLIDE_MIN);
-        //} else if (power > 0) {
-        //    slideTarget = Math.min(slideTarget + STEP, SLIDE_MAX);
-        //}
-
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
-        //slide.setPower(0);
         telemetry.addData("Slide Current / Target ", "(%d, %.2f)", slide.getCurrentPosition(), slideTarget);
-        //telemetry.addData("GamePad2.RightStickY Power:", power);
     }
 
 
