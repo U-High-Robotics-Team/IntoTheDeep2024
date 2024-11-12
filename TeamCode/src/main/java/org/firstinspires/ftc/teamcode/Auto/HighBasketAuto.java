@@ -29,6 +29,10 @@ public class HighBasketAuto extends LinearOpMode {
     final double CLAW_MAX = 0.6;  // Open
     final double CLAW_MIN = 0;// Close
 
+   // robot.leftClaw.setPosition(1.0); 
+   // robot.rightClaw.setPosition(0.0);
+
+
     // position targets
     double shoulderTarget = 0;
     double wristTarget = 0;
