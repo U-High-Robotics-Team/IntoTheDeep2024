@@ -63,25 +63,66 @@ public class PioneerOneTeleop extends OpMode {
         BLeft.setPower((-pivot + (-vertical + horizontal)));
     }
 
+    public void gamepadInput(){
+        // first checking overriding operations
+        if(gamepad2.a){
+            wristTarget = WRIST_MIN;
+        } else if(gamepad2.y){
+            wristTarget = WRIST_MAX;
+        }else if(gamepad2.x){
+            clawTarget = CLAW_MIN;
+        }else if(gamepad2.b){
+            clawTarget = CLAW_MAX;
+        }else if(gamepad2.left_stick_y != 0){
+            final int STEP = 10;   // move increment
+            double input = STEP * -Math.pow(gamepad2.left_stick_y, 3);
+
+            shoulderTarget = Math.max(SHOULDER_MIN, Math.min(SHOULDER_MAX, shoulderTarget + input));
+        }else if(gamepad2.right_stick_y != 0){
+            final int STEP = 30;
+            double input = STEP * -Math.pow(gamepad2.right_stick_y, 3);
+            double max;
+
+            if(shoulder.getCurrentPosition() > 500){
+                max = SLIDE_Y_MAX;
+            }else{
+                max = SLIDE_X_MAX;
+            }
+            slideTarget = Math.max(SLIDE_MIN, Math.min(max, slideTarget + input));
+        }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){ // used 0.5 to add a threshold to allow for no mis hits
+            clawTarget = CLAW_MIN;
+            moveClaw(); // making sure claw happens at this instant and same with the other moves.
+            wristTarget = WRIST_MIN;
+            moveWrist();
+            slideTarget = SLIDE_MIN;
+            moveSlide();
+        }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() > 500){
+            clawTarget = CLAW_MAX;
+            moveClaw(); // making sure claw happens at this instant and same with the other moves.
+            wristTarget = WRIST_MAX;
+            moveWrist();
+            slideTarget = SLIDE_MIN;
+            moveSlide();
+        }
+    }
+
 
     public void moveWrist() {
-        double STEP = 0.02;
-
-        if (gamepad2.a) {
-            // TODO: Try to make it binary operations
-            // wristTarget = Math.max(wristTarget - STEP, WRIST_MIN);
-
-            wristTarget = WRIST_MIN;
-
-        } else if (gamepad2.y) {
-            // TODO: Try to make it binary operations
-            // wristTarget = Math.min(wristTarget + STEP, WRIST_MAX);
-
-            wristTarget = WRIST_MAX;
-
-        } else if (gamepad2.right_bumper){
-            wristTarget = WRIST_CLIP;
-        }
+//        if (gamepad2.a) {
+//            // TODO: Try to make it binary operations
+//            // wristTarget = Math.max(wristTarget - STEP, WRIST_MIN);
+//
+//            wristTarget = WRIST_MIN;
+//
+//        } else if (gamepad2.y) {
+//            // TODO: Try to make it binary operations
+//            // wristTarget = Math.min(wristTarget + STEP, WRIST_MAX);
+//
+//            wristTarget = WRIST_MAX;
+//
+//        } else if (gamepad2.right_bumper){
+//            wristTarget = WRIST_CLIP;
+//        }
 
         wrist.setPosition(wristTarget);
         telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
@@ -89,18 +130,16 @@ public class PioneerOneTeleop extends OpMode {
 
 
     public void moveClaw() {
-        double STEP = 0.02;
-
-        if (gamepad2.x) {
-            clawTarget = CLAW_MIN;
-
-        } else if (gamepad2.b) {
-            // TODO: Try to make it binary operations
-            // clawTarget = Math.min(clawTarget + STEP, CLAW_MAX);
-
-            clawTarget = CLAW_MAX;
-
-        }
+//        if (gamepad2.x) {
+//            clawTarget = CLAW_MIN;
+//
+//        } else if (gamepad2.b) {
+//            // TODO: Try to make it binary operations
+//            // clawTarget = Math.min(clawTarget + STEP, CLAW_MAX);
+//
+//            clawTarget = CLAW_MAX;
+//
+//        }
 
         claw.setPosition(clawTarget);
         telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
@@ -108,10 +147,10 @@ public class PioneerOneTeleop extends OpMode {
 
 
     public void moveShoulder() {
-        final int STEP = 10;   // move increment
-        double input = STEP * -Math.pow(gamepad2.left_stick_y, 3);
-
-        shoulderTarget = Math.max(SHOULDER_MIN, Math.min(SHOULDER_MAX, shoulderTarget + input));
+//        final int STEP = 10;   // move increment
+//        double input = STEP * -Math.pow(gamepad2.left_stick_y, 3);
+//
+//        shoulderTarget = Math.max(SHOULDER_MIN, Math.min(SHOULDER_MAX, shoulderTarget + input));
 
         // Previous DPad Controls
 
@@ -137,16 +176,16 @@ public class PioneerOneTeleop extends OpMode {
 
 
     public void moveSlide() {
-        final int STEP = 30;
-        double input = STEP * -Math.pow(gamepad2.right_stick_y, 3);
-        double max;
-
-        if(shoulder.getCurrentPosition() > 500){
-            max = SLIDE_Y_MAX;
-        }else{
-            max = SLIDE_X_MAX;
-        }
-        slideTarget = Math.max(SLIDE_MIN, Math.min(max, slideTarget + input));
+//        final int STEP = 30;
+//        double input = STEP * -Math.pow(gamepad2.right_stick_y, 3);
+//        double max;
+//
+//        if(shoulder.getCurrentPosition() > 500){
+//            max = SLIDE_Y_MAX;
+//        }else{
+//            max = SLIDE_X_MAX;
+//        }
+//        slideTarget = Math.max(SLIDE_MIN, Math.min(max, slideTarget + input));
 
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -192,6 +231,7 @@ public class PioneerOneTeleop extends OpMode {
         moveSlide();
         moveWrist();
         moveClaw();
+        gamepadInput();
 
         telemetry.addData("Slide Position", slide.getCurrentPosition());
         telemetry.update();
