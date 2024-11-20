@@ -24,7 +24,6 @@ public class CustomRoadRunner extends LinearOpMode {
     private DcMotor BLeft, BRight, FLeft, FRight;
 
     // constants
-
     private static final double WHEEL_RADIUS = 0.05;
     private static final double PI = Math.PI;
     private static final double REVS_PER_METER = 1 / (2 * PI * WHEEL_RADIUS);
@@ -77,6 +76,69 @@ public class CustomRoadRunner extends LinearOpMode {
         }
     }
 
+    public void roboGo(double x, double y, double deg, double speed) {
+        double velo = 2;  // arbitrary - just for calculating steps
+        double dist = Math.sqrt((x * x) + (y * y)); // finds vector distance (pythagorean theorem)
+        double time = dist / velo; // physics (t=d/v)
+        double xVelo;
+        double yVelo;
+
+        if (dist == 0) {
+            time = velo;
+            xVelo = 0;
+            yVelo = 0;
+        } else {
+            xVelo = (x / dist) * velo;
+            yVelo = (y / dist) * velo;
+
+        }
+
+        double rotVelo = (deg / time) * (PI / 180);
+
+        // angular velocity (physics)
+        // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
+        // unit = rad/sec
+        double wFL = WHEEL_RADIUS * ((xVelo + yVelo) - (LENGTH_CONSTANT * rotVelo));
+        double wFR = WHEEL_RADIUS * ((-xVelo + yVelo) + (LENGTH_CONSTANT * rotVelo));
+        double wBL = WHEEL_RADIUS * ((-xVelo + yVelo) - (LENGTH_CONSTANT * rotVelo));
+        double wBR = WHEEL_RADIUS * ((xVelo + yVelo) + (LENGTH_CONSTANT * rotVelo));
+
+        // finding the number of steps to satisfy the number of radians of rotations
+        // units = (rad/sec * steps/rad) = steps/sec
+        double stepSpeedFL = wFL * STEPS_PER_RAD;
+        double stepSpeedFR = wFR * STEPS_PER_RAD;
+        double stepSpeedBL = wBL * STEPS_PER_RAD;
+        double stepSpeedBR = wBR * STEPS_PER_RAD;
+
+        // units = (sec * steps/sec) = steps
+        // calculating the final steps needed to get desire angular velocity
+        double stepsFL = (long) (stepSpeedFL * time);
+        double stepsFR = (long) (stepSpeedFR * time);
+        double stepsBL = (long) (stepSpeedBL * time);
+        double stepsBR = (long) (stepSpeedBR * time);
+
+        BLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        BRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        FRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        FLeft.setTargetPosition((int)stepsFL);
+        FRight.setTargetPosition((int)stepsFR);
+        BLeft.setTargetPosition((int)stepsBL);
+        BRight.setTargetPosition((int)stepsBR);
+
+        FLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        FRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        BRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        FLeft.setPower(Math.abs(speed));
+        FRight.setPower(Math.abs(speed));
+        BLeft.setPower(Math.abs(speed));
+        BRight.setPower(Math.abs(speed));
+    }
+
+
 
     public void polarGo(double r, double theta, double speed, double rot) {
         //TODO: replaced milis() with System.currentTimeMillis() but not sure if this is correct
@@ -128,7 +190,7 @@ public class CustomRoadRunner extends LinearOpMode {
 
 
     public void moveX(double meters) {
-        double moveTo = meters * 1250;
+        double moveTo = meters * STEPS_PER_METER;
 
         FLeft.setTargetPosition((int)-moveTo);
         FRight.setTargetPosition((int)moveTo);
@@ -151,7 +213,7 @@ public class CustomRoadRunner extends LinearOpMode {
     }
 
     public void moveY(double meters) {
-        double moveTo = meters * 1250;
+        double moveTo = meters * STEPS_PER_METER;
 
         FLeft.setTargetPosition((int)-moveTo);
         FRight.setTargetPosition((int)-moveTo);
