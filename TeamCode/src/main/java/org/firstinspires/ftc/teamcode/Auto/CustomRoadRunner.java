@@ -101,6 +101,8 @@ public class CustomRoadRunner extends LinearOpMode {
                 theta -= rotVelo * TIMESTEP;// theta = wt
             }
         }
+
+        off();
     }
 
     private void stopMotors() {
