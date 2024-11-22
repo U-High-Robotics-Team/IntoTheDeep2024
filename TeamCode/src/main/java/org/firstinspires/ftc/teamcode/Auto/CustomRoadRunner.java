@@ -16,8 +16,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 // 2. Going to add PID Controllers to handle errors (first isolating system within TestingPIDController.java
 // 3. Soon will be utilizing online player to see code run without robot in hand
 
-
-
 @Disabled // using this so it won't cause errors when running other codes (hopefully works not tested)
 @Autonomous(name = "CustomRoadRunner")
 public class CustomRoadRunner extends LinearOpMode {
