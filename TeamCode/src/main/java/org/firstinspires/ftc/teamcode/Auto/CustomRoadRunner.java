@@ -10,10 +10,12 @@ import com.qualcomm.robotcore.hardware.DcMotorController;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-//TODO: Changes that need to be made to adhere to general rules of phsyics
-// 1. Here X is being referred to as forward and back when it should be left and right
-// 2. Angular Velocity rotation direction is reversed within the polarGo function
-//   (clockwise means negative, counterclockwise means positive)
+//TODO: Notes for additions in projects
+// 1. Current coordinate system is relative to the robot and not the field so we
+// need to store x and y values and convert given and x and y into field coordinate system (trig)
+// 2. Going to add PID Controllers to handle errors (first isolating system within TestingPIDController.java
+// 3. Soon will be utilizing online player to see code run without robot in hand
+
 
 
 @Disabled // using this so it won't cause errors when running other codes (hopefully works not tested)
