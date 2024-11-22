@@ -49,9 +49,13 @@ public class PioneerOneTeleop extends OpMode {
         double speed = 0.5;
 
 
-        double leftStickY = Math.pow(gamepad1.left_stick_y, 3);
-        double leftStickX = Math.pow(gamepad1.left_stick_x, 3);
-        double rightStickX = Math.pow(gamepad1.right_stick_x, 3);
+        // back to linear speeds
+        double leftStickY = gamepad1.left_stick_y;
+        double leftStickX = gamepad1.left_stick_x;
+        double rightStickX = gamepad1.right_stick_x;
+
+
+
         vertical = speed * leftStickY;
         horizontal = speed * -leftStickX;
         pivot = speed * -rightStickX;
