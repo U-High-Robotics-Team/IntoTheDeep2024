@@ -15,11 +15,14 @@ public class TestingPIDController extends LinearOpMode {
     DcMotorEx bRight;
     DcMotorEx bLeft;
 
-    double kP = 0.003; // bigger the error the faster we will fix it
-    double kI = 0.00006; // provides extra boost when you get close to the target
+    double kP = 0.0024; // bigger the error the faster we will fix it
+    double kI = 0.00013; // provides extra boost when you get close to the target
     double kD = 0.00015; // dampens overshoot
     double toleranceLevel = 1;
-    double error;
+    double bRError;
+    double bLError;
+    double fRError;
+    double fLError;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -47,46 +50,52 @@ public class TestingPIDController extends LinearOpMode {
         while (opModeIsActive()) {
             movePosition(2000);
             telemetry.addData("Moving to Position", fRight.getCurrentPosition());
-            telemetry.addData("Current Error", error);
+            telemetry.addData("Current Error", 0);
             telemetry.update();
         }
     }
 
     public void movePosition(int targetSteps){
-        double lastError = 0;
-        double derivative = 0;
-        double integralSum = 0;
-        double out = 0;
+        double bRLastError = 0;
+        double fRLastError = 0;
+        double fLLastError = 0;
+        double bLLastError = 0;
         ElapsedTime timer = new ElapsedTime();
 
-        this.error = targetSteps - fRight.getCurrentPosition();
+        this.fRError = targetSteps - fRight.getCurrentPosition();
+        this.fLError = targetSteps - fLeft.getCurrentPosition();
+        this.bRError = targetSteps - bRight.getCurrentPosition();
+        this.bLError = targetSteps - bLeft.getCurrentPosition();
 
+        while(Math.abs(fRError) > toleranceLevel && opModeIsActive() && Math.abs(fLError) > toleranceLevel && Math.abs(bRError) > toleranceLevel && Math.abs(bLError) > toleranceLevel){
 
-        while(Math.abs(error) > toleranceLevel && opModeIsActive()){
-            this.error = targetSteps - fRight.getCurrentPosition();
+            this.fRError = targetSteps - fRight.getCurrentPosition();
+            this.fLError = targetSteps - fLeft.getCurrentPosition();
+            this.bRError = targetSteps - bRight.getCurrentPosition();
+            this.bLError = targetSteps - bLeft.getCurrentPosition();
 
-            // rate of change of the error
-            derivative = (error - lastError) / timer.seconds();
-
-            // sum of all error over time
-            integralSum = integralSum + (error * timer.seconds());
-
-            out = (kP * error) + (kI * integralSum) + (kD * derivative);
-
-            fRight.setPower(Math.max(Math.min(out, 1), -1));
-            fLeft.setPower(Math.max(Math.min(out, 1), -1));
-            bRight.setPower(Math.max(Math.min(out, 1), -1));
-            bLeft.setPower(Math.max(Math.min(out, 1), -1));
-
-
+            fRight.setPower(Math.max(Math.min(findPIDPower(targetSteps, fRight, timer, fRLastError), 1), -1));
+            fLeft.setPower(Math.max(Math.min(findPIDPower(targetSteps, fLeft, timer, fLLastError), 1), -1));
+            bRight.setPower(Math.max(Math.min(findPIDPower(targetSteps, bRight, timer, bRLastError), 1), -1));
+            bLeft.setPower(Math.max(Math.min(findPIDPower(targetSteps, bLeft, timer, bLLastError), 1), -1));
 
             // setting for next iteration
-            lastError = error;
+            bRLastError = bRError;
+            fRLastError = fRError;
+            fLLastError = fLError;
+            bLLastError = bLError;
             timer.reset();
 
-            telemetry.addData("Moving to Position", fRight.getCurrentPosition());
-            telemetry.addData("Current Error", error);
-            telemetry.addData("Power", out);
+            telemetry.addData("Front Right Position", fRight.getCurrentPosition());
+            telemetry.addData("Front Left Position", fLeft.getCurrentPosition());
+            telemetry.addData("Back Right Position", bRight.getCurrentPosition());
+            telemetry.addData("Back Left Position", bLeft.getCurrentPosition());
+
+            telemetry.addData("Front Right Error", fRError);
+            telemetry.addData("Front Left Error", fLError);
+            telemetry.addData("Back Right Error", bRError);
+            telemetry.addData("Back Left Error", bLError);
+
             telemetry.update();
         }
 
@@ -95,5 +104,24 @@ public class TestingPIDController extends LinearOpMode {
         fLeft.setPower(0);
         bRight.setPower(0);
         bLeft.setPower(0);
+    }
+
+    public double findPIDPower(int targetSteps, DcMotorEx motor, ElapsedTime timer, double lastError){
+        double derivative = 0;
+        double integralSum = 0;
+        double out = 0;
+        double error = 0;
+
+        error = targetSteps - motor.getCurrentPosition();
+
+        // rate of change of the error
+        derivative = (error - lastError) / timer.seconds();
+
+        // sum of all error over time
+        integralSum = integralSum + (error * timer.seconds());
+
+        out = (kP * error) + (kI * integralSum) + (kD * derivative);
+
+        return out;
     }
 }
