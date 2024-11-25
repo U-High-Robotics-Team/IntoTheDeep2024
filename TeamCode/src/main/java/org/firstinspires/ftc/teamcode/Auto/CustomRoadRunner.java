@@ -23,6 +23,10 @@ public class CustomRoadRunner extends LinearOpMode {
     DcMotorEx bRight;
     DcMotorEx bLeft;
 
+    double xPos = 0;
+    double yPos = 0;
+    double theta = 0;
+
     double kP = 0.003; // bigger the error the faster we will fix it
     double kI = 0.0001; // provides extra boost when you get close to the target
     double kD = 0.00015; // dampens overshoot
@@ -33,15 +37,15 @@ public class CustomRoadRunner extends LinearOpMode {
     double fLError;
 
     // constants
-    private static final double WHEEL_RADIUS = 0.104;
+    private static final double WHEEL_RADIUS = 0.104 / 2;
     private static final double PI = Math.PI;
     private static final double REVS_PER_METER = 1 / (2 * PI * WHEEL_RADIUS);
     private static final double MAX_SPEED = 2; // meters per second
-    private static final double TIMESTEP = 0.1; // seconds
+    private static final double TIMESTEP = 0.05; // seconds
     private static final double LENGTH_CONSTANT = 0.3380; // half-width + half-length in meters
     private static final double INV_WHEEL_RADIUS = 1 / WHEEL_RADIUS;
-    private static final double STEPS_PER_REV = 751.8;
-    private static final double STEPS_PER_RAD = STEPS_PER_REV/(2*PI);
+    private static final double STEPS_PER_REV = 751.8; // TODO check this value
+    private static final double STEPS_PER_RAD = STEPS_PER_REV/(2*PI); // TODO check this value
     private static final double MAX_ROT_SPEED = 0.1; // radians per second
     private static final double POSITION_TOLERANCE = 0.05; // meters
     private static final double ANGLE_TOLERANCE = 0.1; // radians
@@ -62,15 +66,15 @@ public class CustomRoadRunner extends LinearOpMode {
         fRight = hardwareMap.get(DcMotorEx.class, "frontright");
 
         // setting encoders
-        bLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        bRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        fLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        fRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        bLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        bRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        fLeft.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        fRight.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
 
-        bRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        bLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        fLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        fRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        bRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        bLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        fLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        fRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         // reverse the motor directions
         bLeft.setDirection(DcMotorSimple.Direction.REVERSE);
@@ -82,45 +86,37 @@ public class CustomRoadRunner extends LinearOpMode {
             // move one meter at 45 degrees with speed 1 with no rotation
             telemetry.addData("Status: Begin Path", 1);
             telemetry.update();
-            roboGo(1.0, 0, 0, 0.2);
+
+            roboGo(1.0, 0, 0, 3);
+
             telemetry.addData("Status: Completed Path", 0);
             telemetry.update();
         }
     }
 
-    public void roboGo(double x, double y, double deg, double speed) {
+    public void roboGo(double x, double y, double deg, double travelTime) {
         double velo = 2;  // arbitrary - just for calculating steps
         double dist = Math.sqrt((x * x) + (y * y)); // finds vector distance (pythagorean theorem)
-        double time = dist / velo; // physics (t=d/v)
         double xVelo;
         double yVelo;
+        double tVelo;
 
-        if (dist == 0) {
-            time = velo;
-            xVelo = 0;
-            yVelo = 0;
-        } else {
-            xVelo = (x / dist) * velo;
-            yVelo = (y / dist) * velo;
+        deg = deg * (PI /180);
 
-        }
-
-        telemetry.addData("X Velocity", xVelo);
-        telemetry.addData("Y Velocity", yVelo);
-        telemetry.update();
-
-        sleep(5000);
-
-
-        double rotVelo = (deg / time) * (PI / 180);
+        xVelo = (x - this.xPos) / travelTime;
+        yVelo = (y - this.yPos) / travelTime;
+        tVelo = (deg - this.theta) / travelTime;
+//
+//        double rotVelo = (deg / time) * (PI / 180);
+//        double rotVelo = deg * (PI / 180);
 
         // angular velocity (physics)
         // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
         // unit = rad/sec
-        double wFL = WHEEL_RADIUS * ((xVelo + yVelo) - (LENGTH_CONSTANT * rotVelo));
-        double wFR = WHEEL_RADIUS * ((-xVelo + yVelo) + (LENGTH_CONSTANT * rotVelo));
-        double wBL = WHEEL_RADIUS * ((-xVelo + yVelo) - (LENGTH_CONSTANT * rotVelo));
-        double wBR = WHEEL_RADIUS * ((xVelo + yVelo) + (LENGTH_CONSTANT * rotVelo));
+        double wFL = ((xVelo + yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        double wFR = ((xVelo - yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        double wBL = ((xVelo - yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        double wBR = ((xVelo + yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
 
         // finding the number of steps to satisfy the number of radians of rotations
         // units = (rad/sec * steps/rad) = steps/sec
@@ -136,22 +132,23 @@ public class CustomRoadRunner extends LinearOpMode {
         double stepsBL = (long) (stepSpeedBL * time);
         double stepsBR = (long) (stepSpeedBR * time);
 
-        telemetry.addData("Front Left Target Steps", stepsFL);
-        telemetry.addData("Front Right Target Steps", stepsFR);
-        telemetry.addData("Back Left Target Steps", stepsBL);
-        telemetry.addData("Back Right Target Steps", stepsBR);
-        telemetry.update();
-        sleep(5000);
-
         bLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         bRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         fLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         fRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
+        bRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        bLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        fLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+        fRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
+
+
         while(opModeIsActive()){
             movePosition((int)stepsFR, (int)stepsFL, (int)stepsBR, (int)stepsBL);
+            this.xPos += xVelo * TIMESTEP;
+            this.yPos += yVelo * TIMESTEP;
+            this.theta += tVelo * TIMESTEP;
         }
-
     }
 
 
