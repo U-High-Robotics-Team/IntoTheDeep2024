@@ -85,7 +85,7 @@ public class CustomRoadRunner extends LinearOpMode {
             telemetry.addData("Status: Begin Path", 1);
             telemetry.update();
 
-            roboGo(1.0, 0, 0, 3);
+            roboGo(4, 5, 0, 3);
 
             telemetry.addData("Status: Completed Path", 0);
             telemetry.update();
@@ -106,10 +106,10 @@ public class CustomRoadRunner extends LinearOpMode {
         // angular velocity (physics)
         // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
         // unit = rad/sec
-        this.wFL = ((xVelo + yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wFR = ((xVelo - yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wBL = ((xVelo - yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wBR = ((xVelo + yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wFL = ((xVelo + yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;// + + +
+        this.wFR = ((xVelo - yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;// + - -
+        this.wBL = ((xVelo - yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;// + - +
+        this.wBR = ((xVelo + yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;// + + -
 
         // finding the number of steps to satisfy the number of radians of rotations
         // units = (rad/sec * steps/rad) = steps/sec
@@ -138,14 +138,8 @@ public class CustomRoadRunner extends LinearOpMode {
         while(opModeIsActive()){
             movePosition((int)stepsFR, (int)stepsFL, (int)stepsBR, (int)stepsBL);
 
-            // TODO Can we change this so we can find position based on steps or just plug in given (x,y) into the position?
-            double xVel = (this.wFL + this.wFR + this.wBL + this.wBR) * WHEEL_RADIUS / 4;
-            double yVel = (this.wFL - this.wFR - this.wBL + this.wBR) * WHEEL_RADIUS / 4;
-            double tVel = (this.wFL - this.wFR + this.wBL - this.wBR) * WHEEL_RADIUS / 4 / AXLE_CONSTANT;
-
-            this.xPos += xVel * TIMESTEP;
-            this.yPos += yVel * TIMESTEP;
-            this.theta += tVel * TIMESTEP;
+            this.xPos = x;
+            this.yPos = y;
         }
     }
 
