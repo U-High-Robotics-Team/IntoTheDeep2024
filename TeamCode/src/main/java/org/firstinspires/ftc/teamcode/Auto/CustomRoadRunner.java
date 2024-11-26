@@ -36,6 +36,11 @@ public class CustomRoadRunner extends LinearOpMode {
     double fRError;
     double fLError;
 
+    double wFL;
+    double wFR;
+    double wBR;
+    double wBL;
+
     // constants
     private static final double WHEEL_RADIUS = 0.104 / 2;
     private static final double PI = Math.PI;
@@ -52,11 +57,6 @@ public class CustomRoadRunner extends LinearOpMode {
     private static final double STEPS_PER_METER = STEPS_PER_REV * REVS_PER_METER;
     private static final double AXLE_CONSTANT = 0.35;          //(width + height) / 2;
 
-
-
-    // unused constants
-//    double invWheelRadius = 19.685;
-//    double axleConst = 0.35;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -95,8 +95,6 @@ public class CustomRoadRunner extends LinearOpMode {
     }
 
     public void roboGo(double x, double y, double deg, double travelTime) {
-        double velo = 2;  // arbitrary - just for calculating steps
-        double dist = Math.sqrt((x * x) + (y * y)); // finds vector distance (pythagorean theorem)
         double xVelo;
         double yVelo;
         double tVelo;
@@ -106,24 +104,21 @@ public class CustomRoadRunner extends LinearOpMode {
         xVelo = (x - this.xPos) / travelTime;
         yVelo = (y - this.yPos) / travelTime;
         tVelo = (deg - this.theta) / travelTime;
-//
-//        double rotVelo = (deg / time) * (PI / 180);
-//        double rotVelo = deg * (PI / 180);
 
         // angular velocity (physics)
         // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
         // unit = rad/sec
-        double wFL = ((xVelo + yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        double wFR = ((xVelo - yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        double wBL = ((xVelo - yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        double wBR = ((xVelo + yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wFL = ((xVelo + yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wFR = ((xVelo - yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wBL = ((xVelo - yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wBR = ((xVelo + yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
 
         // finding the number of steps to satisfy the number of radians of rotations
         // units = (rad/sec * steps/rad) = steps/sec
-        double stepSpeedFL = wFL * STEPS_PER_RAD;
-        double stepSpeedFR = wFR * STEPS_PER_RAD;
-        double stepSpeedBL = wBL * STEPS_PER_RAD;
-        double stepSpeedBR = wBR * STEPS_PER_RAD;
+        double stepSpeedFL = this.wFL * STEPS_PER_RAD;
+        double stepSpeedFR = this.wFR * STEPS_PER_RAD;
+        double stepSpeedBL = this.wBL * STEPS_PER_RAD;
+        double stepSpeedBR = this.wBR * STEPS_PER_RAD;
 
         // units = (sec * steps/sec) = steps
         // calculating the final steps needed to get desire angular velocity
@@ -142,12 +137,17 @@ public class CustomRoadRunner extends LinearOpMode {
         fLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         fRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-
         while(opModeIsActive()){
             movePosition((int)stepsFR, (int)stepsFL, (int)stepsBR, (int)stepsBL);
-            this.xPos += xVelo * TIMESTEP;
-            this.yPos += yVelo * TIMESTEP;
-            this.theta += tVelo * TIMESTEP;
+
+            // TODO Can we change this so we can find position based on steps or just plug in given (x,y) into the position?
+            double xVel = (this.wFL + this.wFR + this.wBL + this.wBR) * WHEEL_RADIUS / 4;
+            double yVel = (this.wFL - this.wFR - this.wBL + this.wBR) * WHEEL_RADIUS / 4;
+            double tVel = (this.wFL - this.wFR + this.wBL - this.wBR) * WHEEL_RADIUS / 4 / AXLE_CONSTANT;
+
+            this.xPos += xVel * TIMESTEP;
+            this.yPos += yVel * TIMESTEP;
+            this.theta += tVel * TIMESTEP;
         }
     }
 
