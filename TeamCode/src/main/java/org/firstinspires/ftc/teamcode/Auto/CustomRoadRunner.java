@@ -47,15 +47,13 @@ public class CustomRoadRunner extends LinearOpMode {
     private static final double REVS_PER_METER = 1 / (2 * PI * WHEEL_RADIUS);
     private static final double MAX_SPEED = 2; // meters per second
     private static final double TIMESTEP = 0.05; // seconds
-    private static final double LENGTH_CONSTANT = 0.3380; // half-width + half-length in meters
-    private static final double INV_WHEEL_RADIUS = 1 / WHEEL_RADIUS;
     private static final double STEPS_PER_REV = 751.8; // TODO check this value
     private static final double STEPS_PER_RAD = STEPS_PER_REV/(2*PI); // TODO check this value
     private static final double MAX_ROT_SPEED = 0.1; // radians per second
     private static final double POSITION_TOLERANCE = 0.05; // meters
     private static final double ANGLE_TOLERANCE = 0.1; // radians
     private static final double STEPS_PER_METER = STEPS_PER_REV * REVS_PER_METER;
-    private static final double AXLE_CONSTANT = 0.35;          //(width + height) / 2;
+    private static final double AXLE_CONSTANT = 0.3380;          //(width + height) / 2;
 
 
     @Override
@@ -108,10 +106,10 @@ public class CustomRoadRunner extends LinearOpMode {
         // angular velocity (physics)
         // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
         // unit = rad/sec
-        this.wFL = ((xVelo + yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wFR = ((xVelo - yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wBL = ((xVelo - yVelo) + (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
-        this.wBR = ((xVelo + yVelo) - (LENGTH_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wFL = ((xVelo + yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wFR = ((xVelo - yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wBL = ((xVelo - yVelo) + (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
+        this.wBR = ((xVelo + yVelo) - (AXLE_CONSTANT * tVelo))/ WHEEL_RADIUS;
 
         // finding the number of steps to satisfy the number of radians of rotations
         // units = (rad/sec * steps/rad) = steps/sec
