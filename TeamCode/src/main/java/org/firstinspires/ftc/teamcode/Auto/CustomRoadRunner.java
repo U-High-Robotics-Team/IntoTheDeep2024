@@ -47,7 +47,7 @@ public class CustomRoadRunner extends LinearOpMode {
     private static final double REVS_PER_METER = 1 / (2 * PI * WHEEL_RADIUS);
     private static final double MAX_SPEED = 2; // meters per second
     private static final double TIMESTEP = 0.05; // seconds
-    private static final double STEPS_PER_REV = 751.8; // TODO check this value
+    private static final double STEPS_PER_REV = 751.8;
     private static final double STEPS_PER_RAD = STEPS_PER_REV/(2*PI); // TODO check this value
     private static final double MAX_ROT_SPEED = 0.1; // radians per second
     private static final double POSITION_TOLERANCE = 0.05; // meters
@@ -85,7 +85,7 @@ public class CustomRoadRunner extends LinearOpMode {
             telemetry.addData("Status: Begin Path", 1);
             telemetry.update();
 
-            roboGo(4, 5, 0, 3);
+            roboGo(0, 0, 90, 3);
 
             telemetry.addData("Status: Completed Path", 0);
             telemetry.update();
@@ -97,11 +97,16 @@ public class CustomRoadRunner extends LinearOpMode {
         double yVelo;
         double tVelo;
 
-        deg = deg * (PI /180);
+//        deg = deg * (PI /180);
+
+        telemetry.addData("Degreeds to Rotate (Radians)", deg* (PI /180));
 
         xVelo = (x - this.xPos) / travelTime;
         yVelo = (y - this.yPos) / travelTime;
-        tVelo = (deg - this.theta) / travelTime;
+        tVelo = (deg * (PI /180) - this.theta) / travelTime;
+
+
+        telemetry.addData("Rotation Velocity", tVelo);
 
         // angular velocity (physics)
         // w = 1/r * (xvelo + yvelo - (distance from center * rotational velocity)
@@ -135,12 +140,10 @@ public class CustomRoadRunner extends LinearOpMode {
         fLeft.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
         fRight.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
-        while(opModeIsActive()){
-            movePosition((int)stepsFR, (int)stepsFL, (int)stepsBR, (int)stepsBL);
+        movePosition((int)stepsFR, (int)stepsFL, (int)stepsBR, (int)stepsBL);
 
-            this.xPos = x;
-            this.yPos = y;
-        }
+        // TODO Update the current (x,y) positions
+
     }
 
 
@@ -156,7 +159,7 @@ public class CustomRoadRunner extends LinearOpMode {
         this.bRError = bRTargetSteps - bRight.getCurrentPosition();
         this.bLError = bLTargetSteps - bLeft.getCurrentPosition();
 
-        while(Math.abs(fRError) > toleranceLevel && opModeIsActive() && Math.abs(fLError) > toleranceLevel && Math.abs(bRError) > toleranceLevel && Math.abs(bLError) > toleranceLevel){
+        while(opModeIsActive() && (Math.abs(fRError) > toleranceLevel || Math.abs(fLError) > toleranceLevel || Math.abs(bRError) > toleranceLevel || Math.abs(bLError) > toleranceLevel)){
 
             this.fRError = fRTargetSteps - fRight.getCurrentPosition();
             this.fLError = fLTargetSteps - fLeft.getCurrentPosition();
