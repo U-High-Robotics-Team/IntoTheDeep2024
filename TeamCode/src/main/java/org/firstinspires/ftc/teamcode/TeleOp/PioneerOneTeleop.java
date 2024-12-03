@@ -24,11 +24,17 @@ public class PioneerOneTeleop extends OpMode {
     final double CLAW_MAX = 0.6;
     final double CLAW_MIN = 0;
 
+    //TODO play around with the below value to find a good threshold to change from slower robot to faster robot
+    final double SLIDE_POSITION_THRESHOLD = 1900;
+
     // position targets
     double shoulderTarget = 0;
     double wristTarget = 0;
     double clawTarget = 0;
     double slideTarget = 0;
+
+    // wheel speeds
+    double speed = 1;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -43,11 +49,15 @@ public class PioneerOneTeleop extends OpMode {
 
     public void moveRobot() {
 
+        if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
+            this.speed = 0.2;
+        }else{
+            this.speed = 1;
+        }
+
         double vertical;
         double horizontal;
         double pivot;
-        double speed = 0.5;
-
 
         // back to linear speeds
         double leftStickY = gamepad1.left_stick_y;
@@ -57,7 +67,7 @@ public class PioneerOneTeleop extends OpMode {
         vertical = speed * leftStickY;
         horizontal = speed * -leftStickX;
         pivot = speed * -rightStickX;
-        
+
         FRight.setPower((pivot + (-vertical + horizontal)));
         BRight.setPower(pivot + (-vertical - horizontal));
         FLeft.setPower((-pivot + (-vertical - horizontal)));
@@ -173,7 +183,7 @@ public class PioneerOneTeleop extends OpMode {
         moveSlide();
         moveWrist();
         moveClaw();
-        gamepadInput(); //TODO try it without this line of code
+        gamepadInput();
 
         telemetry.addData("Slide Position", slide.getCurrentPosition());
         telemetry.update();
