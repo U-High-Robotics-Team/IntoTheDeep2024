@@ -11,15 +11,17 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class PioneerOneTeleop extends OpMode {
 
     // Performance constants
+
+    //TODO change names for shoulder and wrist and claw max and min so its easier to understand
     final int SLIDE_Y_MAX = 2400;
     final int SLIDE_X_MAX = 1000; // Maximum position (top)
     final int SLIDE_MIN = 0; // Minimum position (bottom)
-    final double SLIDE_POWER = 1.0;
-    final int SHOULDER_MAX = 1500;
+    final double SLIDE_POWER = 1;
+    final int SHOULDER_MAX = 1400;
     final int SHOULDER_MIN = 0;
-    final double SHOULDER_POWER = 0.5;
-    final double WRIST_MAX = 0.6;
-    final double WRIST_MIN = 0.0;
+    final double SHOULDER_POWER = 0.6;
+    final double WRIST_MAX = 0.9;
+    final double WRIST_MIN = 0.6;
     final double WRIST_CLIP = 0.3;
     final double CLAW_MAX = 0.6;
     final double CLAW_MIN = 0;
@@ -84,14 +86,23 @@ public class PioneerOneTeleop extends OpMode {
             clawTarget = CLAW_MIN;
         }else if(gamepad2.b){
             clawTarget = CLAW_MAX;
-        }else if(gamepad2.left_stick_y != 0){
+        }else if(gamepad2.left_bumper && slide.getCurrentPosition() < 500){
+            shoulderTarget = SHOULDER_MIN;
+            moveShoulder();
+        }else if(gamepad2.right_bumper && slide.getCurrentPosition() < 500){
+            shoulderTarget = SHOULDER_MAX;
+            moveShoulder();
+        }
+        else if(gamepad2.left_stick_y != 0){
             final int STEP = 10;   // move increment
-            double input = STEP * -Math.pow(gamepad2.left_stick_y, 3);
+            double input = STEP * -gamepad2.left_stick_y;
 
-            shoulderTarget = Math.max(SHOULDER_MIN, Math.min(SHOULDER_MAX, slide.getCurrentPosition() + input));
+            shoulderTarget = Math.max(SHOULDER_MIN, Math.min(shoulder.getCurrentPosition() + input,SHOULDER_MAX));
+
+            moveShoulder();
         }else if(gamepad2.right_stick_y != 0){
             final int STEP = 30;
-            double input = STEP * -Math.pow(gamepad2.right_stick_y, 3);
+            double input = STEP * -gamepad2.right_stick_y;
             double max;
 
             if(shoulder.getCurrentPosition() > 500){
@@ -100,6 +111,8 @@ public class PioneerOneTeleop extends OpMode {
                 max = SLIDE_X_MAX;
             }
             slideTarget = Math.max(SLIDE_MIN, Math.min(max, slide.getCurrentPosition() + input));
+
+            moveSlide();
         }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){ // used 0.5 to add a threshold to allow for no mis hits
             clawTarget = CLAW_MIN;
             moveClaw(); // making sure claw happens at this instant and same with the other moves.
@@ -114,6 +127,24 @@ public class PioneerOneTeleop extends OpMode {
             moveWrist();
             slideTarget = SLIDE_MIN;
             moveSlide();
+        }else if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() < 500){
+            clawTarget = CLAW_MAX;
+            moveClaw(); // making sure claw happens at this instant and same with the other moves.
+            wristTarget = WRIST_MAX;
+            moveWrist();
+            slideTarget = SLIDE_X_MAX;
+            moveSlide();
+            shoulderTarget = SHOULDER_MIN;
+            moveShoulder();
+        }else if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() > 500){
+            clawTarget = CLAW_MAX;
+            moveClaw(); // making sure claw happens at this instant and same with the other moves.
+            wristTarget = WRIST_MAX;
+            moveWrist();
+            slideTarget = SLIDE_Y_MAX;
+            moveSlide();
+            shoulderTarget = SHOULDER_MAX;
+            moveShoulder();
         }
     }
 
@@ -179,10 +210,10 @@ public class PioneerOneTeleop extends OpMode {
 
     public void loop() {
         moveRobot();
-        moveShoulder();
-        moveSlide();
-        moveWrist();
-        moveClaw();
+        // moveShoulder();
+        // moveSlide();
+        // moveWrist();
+        // moveClaw();
         gamepadInput();
 
         telemetry.addData("Slide Position", slide.getCurrentPosition());
