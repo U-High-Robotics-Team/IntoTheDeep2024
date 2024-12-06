@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.TeleOp;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -37,6 +38,7 @@ public class PioneerOneTeleop extends OpMode {
 
     // wheel speeds
     double speed = 1;
+    double activeIntakeSpeed = 0;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -46,8 +48,8 @@ public class PioneerOneTeleop extends OpMode {
     private DcMotor slide;
     private DcMotor shoulder;
     private Servo wrist;
+    private CRServo activeIntake;
     private Servo holder;
-    private Servo claw;
 
     public void moveRobot() {
 
@@ -80,12 +82,20 @@ public class PioneerOneTeleop extends OpMode {
         // first checking overriding operations
         if(gamepad2.a){
             wristTarget = WRIST_MIN;
+            moveWrist();
         } else if(gamepad2.y){
             wristTarget = WRIST_MAX;
+            moveWrist();
+        }else if(gamepad2.dpad_down) {
+            activeIntakeSpeed = -0.5; // Reverse direction
+        } else if (gamepad2.dpad_up) {
+            activeIntakeSpeed = 0.5; // Forward direction
         }else if(gamepad2.x){
             clawTarget = CLAW_MIN;
+            // moveClaw();
         }else if(gamepad2.b){
             clawTarget = CLAW_MAX;
+            // moveClaw();
         }else if(gamepad2.left_bumper && slide.getCurrentPosition() < 500){
             shoulderTarget = SHOULDER_MIN;
             moveShoulder();
@@ -156,7 +166,7 @@ public class PioneerOneTeleop extends OpMode {
 
 
     public void moveClaw() {
-        claw.setPosition(clawTarget);
+        holder.setPosition(clawTarget);
         telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
 
@@ -185,8 +195,10 @@ public class PioneerOneTeleop extends OpMode {
         FRight = hardwareMap.get(DcMotor.class, "frontright");
         slide = hardwareMap.get(DcMotor.class, "elevator");
         shoulder = hardwareMap.get(DcMotor.class, "arm");
-        claw = hardwareMap.get(Servo.class, "claw");
+        holder = hardwareMap.get(Servo.class, "holder");
         wrist = hardwareMap.get(Servo.class, "wrist");
+        activeIntake = hardwareMap.get(CRServo.class, "activeIntake");
+
 
         // setting encoders
         shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -213,10 +225,13 @@ public class PioneerOneTeleop extends OpMode {
         // moveShoulder();
         // moveSlide();
         // moveWrist();
-        // moveClaw();
+        moveClaw();
         gamepadInput();
 
-        telemetry.addData("Slide Position", slide.getCurrentPosition());
+        activeIntake.setPower(activeIntakeSpeed);
+
+        // Display power for debugging
+        telemetry.addData("Active Intake Power", activeIntakeSpeed);
         telemetry.update();
     }
 
