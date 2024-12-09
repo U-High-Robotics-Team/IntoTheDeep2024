@@ -21,11 +21,11 @@ public class PioneerOneTeleop extends OpMode {
     final int SHOULDER_MAX = 1400;
     final int SHOULDER_MIN = 0;
     final double SHOULDER_POWER = 0.6;
-    final double WRIST_MAX = 0.9;
-    final double WRIST_MIN = 0.6;
+    final double WRIST_UP = 0.6;
+    final double WRIST_DOWN = 0.9;
     final double WRIST_CLIP = 0.3;
-    final double CLAW_MAX = 0.6;
-    final double CLAW_MIN = 0;
+    final double CLAW_OPEN = 0.6;
+    final double CLAW_CLOSED = 0;
 
     //TODO play around with the below value to find a good threshold to change from slower robot to faster robot
     final double SLIDE_POSITION_THRESHOLD = 1900;
@@ -37,8 +37,7 @@ public class PioneerOneTeleop extends OpMode {
     double slideTarget = 0;
 
     // wheel speeds
-    double speed = 1;
-    double activeIntakeSpeed = 0;
+    double wheelSpeed = 1;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -48,15 +47,14 @@ public class PioneerOneTeleop extends OpMode {
     private DcMotor slide;
     private DcMotor shoulder;
     private Servo wrist;
-    private CRServo activeIntake;
-    private Servo holder;
+    private Servo claw;
 
     public void moveRobot() {
 
         if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
-            this.speed = 0.2;
+            this.wheelSpeed = 0.2;
         }else{
-            this.speed = 1;
+            this.wheelSpeed = 1;
         }
 
         double vertical;
@@ -68,9 +66,9 @@ public class PioneerOneTeleop extends OpMode {
         double leftStickX = gamepad1.left_stick_x;
         double rightStickX = gamepad1.right_stick_x;
 
-        vertical = speed * leftStickY;
-        horizontal = speed * -leftStickX;
-        pivot = speed * -rightStickX;
+        vertical = wheelSpeed * leftStickY;
+        horizontal = wheelSpeed * -leftStickX;
+        pivot = wheelSpeed * -rightStickX;
 
         FRight.setPower((pivot + (-vertical + horizontal)));
         BRight.setPower(pivot + (-vertical - horizontal));
@@ -81,37 +79,24 @@ public class PioneerOneTeleop extends OpMode {
     public void gamepadInput(){
         // first checking overriding operations
         if(gamepad2.a){
-            wristTarget = WRIST_MIN;
-            moveWrist();
+            wristTarget = WRIST_DOWN;
         } else if(gamepad2.y){
-            wristTarget = WRIST_MAX;
-            moveWrist();
-        }else if(gamepad2.dpad_down) {
-            activeIntakeSpeed = -0.5; // Reverse direction
-        } else if (gamepad2.dpad_up) {
-            activeIntakeSpeed = 0.5; // Forward direction
+            wristTarget = WRIST_UP;
         }else if(gamepad2.x){
-            clawTarget = CLAW_MIN;
-            // moveClaw();
+            clawTarget = CLAW_OPEN;
         }else if(gamepad2.b){
-            clawTarget = CLAW_MAX;
-            // moveClaw();
+            clawTarget = CLAW_CLOSED;
         }else if(gamepad2.left_bumper && slide.getCurrentPosition() < 500){
             shoulderTarget = SHOULDER_MIN;
-            moveShoulder();
-        }else if(gamepad2.right_bumper && slide.getCurrentPosition() < 500){
+        }else if(gamepad2.right_bumper && slide.getCurrentPosition() < 500) {
             shoulderTarget = SHOULDER_MAX;
-            moveShoulder();
-        }
-        else if(gamepad2.left_stick_y != 0){
-            final int STEP = 10;   // move increment
+        }else if(gamepad2.left_stick_y != 0){
+            final int STEP = 50;
             double input = STEP * -gamepad2.left_stick_y;
 
             shoulderTarget = Math.max(SHOULDER_MIN, Math.min(shoulder.getCurrentPosition() + input,SHOULDER_MAX));
-
-            moveShoulder();
         }else if(gamepad2.right_stick_y != 0){
-            final int STEP = 30;
+            final int STEP = 50;
             double input = STEP * -gamepad2.right_stick_y;
             double max;
 
@@ -121,40 +106,25 @@ public class PioneerOneTeleop extends OpMode {
                 max = SLIDE_X_MAX;
             }
             slideTarget = Math.max(SLIDE_MIN, Math.min(max, slide.getCurrentPosition() + input));
+        }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){
 
-            moveSlide();
-        }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){ // used 0.5 to add a threshold to allow for no mis hits
-            clawTarget = CLAW_MIN;
-            moveClaw(); // making sure claw happens at this instant and same with the other moves.
-            wristTarget = WRIST_MIN;
-            moveWrist();
+            // this code initates when right trigger is pressed and robot is ready to pick up sample
+            clawTarget = CLAW_CLOSED;
+            wristTarget = WRIST_UP;
             slideTarget = SLIDE_MIN;
-            moveSlide();
         }else if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() > 500){
-            clawTarget = CLAW_MAX;
-            moveClaw(); // making sure claw happens at this instant and same with the other moves.
-            wristTarget = WRIST_MAX;
-            moveWrist();
+            clawTarget = CLAW_OPEN;
+            wristTarget = WRIST_DOWN;
             slideTarget = SLIDE_MIN;
-            moveSlide();
         }else if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() < 500){
-            clawTarget = CLAW_MAX;
-            moveClaw(); // making sure claw happens at this instant and same with the other moves.
-            wristTarget = WRIST_MAX;
-            moveWrist();
+            clawTarget = CLAW_OPEN;
+            wristTarget = WRIST_DOWN;
             slideTarget = SLIDE_X_MAX;
-            moveSlide();
             shoulderTarget = SHOULDER_MIN;
-            moveShoulder();
         }else if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() > 500){
-            clawTarget = CLAW_MAX;
-            moveClaw(); // making sure claw happens at this instant and same with the other moves.
-            wristTarget = WRIST_MAX;
-            moveWrist();
-            slideTarget = SLIDE_Y_MAX;
-            moveSlide();
             shoulderTarget = SHOULDER_MAX;
-            moveShoulder();
+            slideTarget = SLIDE_Y_MAX;
+            wristTarget = WRIST_UP;
         }
     }
 
@@ -166,7 +136,7 @@ public class PioneerOneTeleop extends OpMode {
 
 
     public void moveClaw() {
-        holder.setPosition(clawTarget);
+        claw.setPosition(clawTarget);
         telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
 
@@ -175,7 +145,6 @@ public class PioneerOneTeleop extends OpMode {
         shoulder.setTargetPosition((int)shoulderTarget);
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setPower(Math.abs(SHOULDER_POWER));
-        telemetry.addData("Shoulder Current / Target ", "(%d, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
 
@@ -183,7 +152,6 @@ public class PioneerOneTeleop extends OpMode {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
-        telemetry.addData("Slide Current / Target ", "(%d, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
 
@@ -195,9 +163,8 @@ public class PioneerOneTeleop extends OpMode {
         FRight = hardwareMap.get(DcMotor.class, "frontright");
         slide = hardwareMap.get(DcMotor.class, "elevator");
         shoulder = hardwareMap.get(DcMotor.class, "arm");
-        holder = hardwareMap.get(Servo.class, "holder");
+        claw = hardwareMap.get(Servo.class, "claw");
         wrist = hardwareMap.get(Servo.class, "wrist");
-        activeIntake = hardwareMap.get(CRServo.class, "activeIntake");
 
 
         // setting encoders
@@ -214,6 +181,25 @@ public class PioneerOneTeleop extends OpMode {
         slide.setDirection(DcMotorSimple.Direction.REVERSE);
     }
 
+    public void start(){
+        // shoulder.setTargetPosition(-700);
+        // shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        // shoulder.setPower(Math.abs(SHOULDER_POWER));
+
+        // // waits for shoulder to complete
+        // while(shoulder.isBusy()){
+        //     telemetry.addData("Shoulder Going to Position", 0);
+        //     telemetry.addData("Shoulder Current / Target ", "(%d, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
+
+        //     if(shoulder.getCurrentPosition() < -700){
+        //         break;
+        //     }
+        // }
+
+        // shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+
 
     public void init_loop() {
 
@@ -222,17 +208,11 @@ public class PioneerOneTeleop extends OpMode {
 
     public void loop() {
         moveRobot();
-        // moveShoulder();
-        // moveSlide();
-        // moveWrist();
+        moveShoulder();
+        moveSlide();
+        moveWrist();
         moveClaw();
         gamepadInput();
-
-        activeIntake.setPower(activeIntakeSpeed);
-
-        // Display power for debugging
-        telemetry.addData("Active Intake Power", activeIntakeSpeed);
-        telemetry.update();
     }
 
 }
