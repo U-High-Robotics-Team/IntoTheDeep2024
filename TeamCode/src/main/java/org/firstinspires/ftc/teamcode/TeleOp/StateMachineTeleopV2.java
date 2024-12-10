@@ -39,25 +39,20 @@ public class StateMachineTeleopV2 extends OpMode {
     final double WRIST_CLIP = 0.3; // unused currently
     final double CLAW_OPEN = 0.6;
     final double CLAW_CLOSED = 0;
-    final double WHEEL_SPEED_MAX = 1;
-    final double WHEEL_SPEED_LIMTED = 0.2;
-    
-    // Threshold where extended slide causes drive mode to be slower
+
+    // Thresholds
     final double SLIDE_POSITION_THRESHOLD = 1900;
-    // Threshold where lowered should limits maximum slide extension to comply with size rules
     final double SHOULDER_POSITION_THRESHOLD = 500;
-    
+
     // Position targets
-    private RobotState currentState = RobotState.HOME;
-    private RobotState requestedState = RobotState.NONE;
-    // TODO: ensure that robot is physically in the HOME state configuration
+    // TODO: this assumes we have a block at the start
     double shoulderTarget = SHOULDER_MIN;
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
 
     // Movement speed
-    double wheelSpeed = WHEEL_SPEED_MAX;
+    double wheelSpeed = 1;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -70,21 +65,25 @@ public class StateMachineTeleopV2 extends OpMode {
     private Servo claw;
 
     public void moveRobot() {
-        // response curve is set to linear - can be adjusted for more or less sensitivity
+        if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
+            this.wheelSpeed = 0.2;
+        }else{
+            this.wheelSpeed = 1;
+        }
+
+        double vertical;
+        double horizontal;
+        double pivot;
+
+        // back to linear speeds
         double leftStickY = gamepad1.left_stick_y;
         double leftStickX = gamepad1.left_stick_x;
         double rightStickX = gamepad1.right_stick_x;
 
-        if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
-            this.wheelSpeed = WHEEL_SPEED_LIMTED;
-        }else{
-            this.wheelSpeed = WHEEL_SPEED_MAX;
-        }
-        
-        double vertical = wheelSpeed * leftStickY;
-        double horizontal = wheelSpeed * -leftStickX; 
-        double pivot = wheelSpeed * -rightStickX;
-        
+        vertical = wheelSpeed * leftStickY;
+        horizontal = wheelSpeed * -leftStickX;
+        pivot = wheelSpeed * -rightStickX;
+
         FRight.setPower((pivot + (-vertical + horizontal)));
         BRight.setPower(pivot + (-vertical - horizontal));
         FLeft.setPower((-pivot + (-vertical - horizontal)));
@@ -266,18 +265,19 @@ public class StateMachineTeleopV2 extends OpMode {
     
     public void moveWrist() {
         wrist.setPosition(wristTarget);
-        // telemetry.addData("Wrist Target ", "(%.2f)", wristTarget);
+        // telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
     }
     
     public void moveClaw() {
         claw.setPosition(clawTarget);
-        // telemetry.addData("Claw Target ", "(%.2f)", clawTarget);
+        // telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
 
     public void moveShoulder() {
         shoulder.setTargetPosition((int)shoulderTarget);
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setPower(Math.abs(SHOULDER_POWER));
+
         // telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
@@ -285,6 +285,7 @@ public class StateMachineTeleopV2 extends OpMode {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
+
         // telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
@@ -314,12 +315,11 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void loop() {
-        gamepadInput();
-        stateMachine();
         moveRobot();
         moveShoulder();
-        moveSlide();
-        moveClaw();
-        telemetry.update();
+        gamepadInput();
+        stateMachine();
+
+        // telemetry.update();
     }
 }
