@@ -29,7 +29,6 @@ public class StateMachineTeleopV2 extends OpMode {
     RobotState currentState = RobotState.NONE;
     RobotState requestedState = RobotState.NONE;
 
-
     // Performance constants
     final int SLIDE_Y_MAX = 2400;
     final int SLIDE_X_MAX = 1000; // Maximum position (top)
@@ -67,8 +66,13 @@ public class StateMachineTeleopV2 extends OpMode {
     private DcMotor shoulder;
     private Servo wrist;
     private Servo claw;
-
+    
     public void moveRobot() {
+        // speed input sensitivity is linear right now - this can be adjusted
+        double leftStickY = gamepad1.left_stick_y;
+        double leftStickX = gamepad1.left_stick_x;
+        double rightStickX = gamepad1.right_stick_x;
+
         if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
             this.wheelSpeed = WHEEL_SPEED_LIMITED;
         }else{
@@ -79,10 +83,6 @@ public class StateMachineTeleopV2 extends OpMode {
         double horizontal;
         double pivot;
 
-        // back to linear speeds
-        double leftStickY = gamepad1.left_stick_y;
-        double leftStickX = gamepad1.left_stick_x;
-        double rightStickX = gamepad1.right_stick_x;
 
         vertical = wheelSpeed * leftStickY;
         horizontal = wheelSpeed * -leftStickX;
@@ -102,11 +102,17 @@ public class StateMachineTeleopV2 extends OpMode {
         if(gamepad2.y){
             wristTarget = WRIST_UP;
         }
-        if(gamepad2.x){
-            clawTarget = CLAW_OPEN;
-        }
         if(gamepad2.b){
             clawTarget = CLAW_CLOSED;
+        }
+        if(gamepad2.x){
+            // PRESET: Opens Claw and Brings Back Entire Slide back to Home
+            if(currentState == RobotState.BASKET_2){
+                timer.reset();
+                requestedState = RobotState.BASKET_3; // Same as home but with systematic process (ordering movements)
+            } else {
+                clawTarget = CLAW_OPEN;
+            }   
         }
         if(gamepad2.left_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
             shoulderTarget = SHOULDER_MIN;
@@ -158,11 +164,7 @@ public class StateMachineTeleopV2 extends OpMode {
             requestedState = RobotState.BASKET_2;
         }
 
-        // PRESET: Opens Claw and Brings Back Entire Slide back to Home
-        if(gamepad2.x && currentState == RobotState.BASKET_2){
-            timer.reset();
-            requestedState = RobotState.BASKET_3; // Same as home but with systematic process (ordering movements)
-        }
+        
 
     }
 
@@ -216,7 +218,7 @@ public class StateMachineTeleopV2 extends OpMode {
             case BASKET_2:
                 slideTarget = SLIDE_Y_MAX;
                 clawTarget = CLAW_CLOSED;
-
+                
                 if(timer.seconds() > 2.0){
                     wristTarget = WRIST_UP;
                 }
