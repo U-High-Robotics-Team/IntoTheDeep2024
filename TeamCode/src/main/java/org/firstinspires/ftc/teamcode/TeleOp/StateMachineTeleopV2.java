@@ -95,6 +95,21 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void gamepadInput(){
+        // Preset States
+        if (gamepad.right_bumper){
+            requestedState = RobotState.HOME;
+        }
+        if (gamepad.right_trigger){
+            requestedState = RobotState.SUBMERSIBLE;
+        }
+        if (gamepad.left_bumper){
+            requestedState = RobotState.BASKET_1;
+        }
+        if (gamepad.right_trigger){
+            requestedState = RobotState.BASKET_@;
+        }
+        
+    
         // manual move requests
         if(gamepad2.a){
             wristTarget = WRIST_DOWN;
