@@ -39,20 +39,22 @@ public class StateMachineTeleopV2 extends OpMode {
     final double WRIST_CLIP = 0.3; // unused currently
     final double CLAW_OPEN = 0.6;
     final double CLAW_CLOSED = 0;
+    final double WHEEL_SPEED_MAX = 1;
+    final double WHEEL_SPEED_LIMITED = 0.2;
 
     // Thresholds
     final double SLIDE_POSITION_THRESHOLD = 1900;
     final double SHOULDER_POSITION_THRESHOLD = 500;
 
     // Position targets
+    RobotState currentState = RobotState.HOME;
+    RobotState requestedState = RobotState.HOME;
     // TODO: this assumes we have a block at the start
     double shoulderTarget = SHOULDER_MIN;
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
-
-    // Movement speed
-    double wheelSpeed = 1;
+    double wheelSpeed = WHEEL_SPEED_MAX;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -66,9 +68,9 @@ public class StateMachineTeleopV2 extends OpMode {
 
     public void moveRobot() {
         if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
-            this.wheelSpeed = 0.2;
+            this.wheelSpeed = WHEEL_SPEED_LIMITED;
         }else{
-            this.wheelSpeed = 1;
+            this.wheelSpeed = WHEEL_SPEED_MAX;
         }
 
         double vertical;
@@ -265,19 +267,18 @@ public class StateMachineTeleopV2 extends OpMode {
     
     public void moveWrist() {
         wrist.setPosition(wristTarget);
-        // telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
+        // telemetry.addData("Wrist Current / Target ", "(%.2f)", wristTarget);
     }
     
     public void moveClaw() {
         claw.setPosition(clawTarget);
-        // telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
+        // telemetry.addData("Claw Current / Target ", "(%.2f)", clawTarget);
     }
 
     public void moveShoulder() {
         shoulder.setTargetPosition((int)shoulderTarget);
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setPower(Math.abs(SHOULDER_POWER));
-
         // telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
@@ -285,7 +286,6 @@ public class StateMachineTeleopV2 extends OpMode {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
-
         // telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
@@ -315,11 +315,13 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void loop() {
-        moveRobot();
-        moveShoulder();
         gamepadInput();
         stateMachine();
-
-        // telemetry.update();
+        moveRobot();
+        moveShoulder();
+        moveSlide();
+        moveWrist();
+        moveClaw();
+        telemetry.update();
     }
 }
