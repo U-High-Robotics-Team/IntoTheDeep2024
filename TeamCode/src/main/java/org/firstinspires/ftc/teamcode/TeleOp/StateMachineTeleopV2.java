@@ -51,8 +51,6 @@ public class StateMachineTeleopV2 extends OpMode {
     final double SHOULDER_POSITION_THRESHOLD = 500;
 
     // Position targets
-    RobotState currentState = RobotState.HOME;
-    RobotState requestedState = RobotState.HOME;
     // TODO: this assumes we have a block at the start
     double shoulderTarget = SHOULDER_MIN;
     double wristTarget = WRIST_UP;
@@ -262,7 +260,7 @@ public class StateMachineTeleopV2 extends OpMode {
                 break;
 
             default:
-                currentState = RobotState.UNKNOWN:
+                currentState = RobotState.UNKNOWN;
             
             break;
         }
