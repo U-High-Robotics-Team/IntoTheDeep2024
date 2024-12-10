@@ -12,14 +12,13 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class StateMachineTeleop extends OpMode {
 
     // Timer for Servos
-    private ElapsedTime timer = new ElapsedTime();
+    private final ElapsedTime timer = new ElapsedTime();
 
     // Preset action states
     enum ServoState {
         NONE,
         CLAW_ACTION,
         WRIST_ACTION,
-        SLIDE_ACTION,
         COMPLETED
     }
 
@@ -64,7 +63,6 @@ public class StateMachineTeleop extends OpMode {
     private Servo claw;
 
     public void moveRobot() {
-
         if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
             this.wheelSpeed = 0.2;
         }else{
@@ -95,30 +93,37 @@ public class StateMachineTeleop extends OpMode {
             wristTarget = WRIST_DOWN;
             currentState = ServoState.WRIST_ACTION;
         }
+
         if(gamepad2.y){
             wristTarget = WRIST_UP;
             currentState = ServoState.WRIST_ACTION;
         }
+
         if(gamepad2.x){
             clawTarget = CLAW_OPEN;
             currentState = ServoState.CLAW_ACTION;
         }
+
         if(gamepad2.b){
             clawTarget = CLAW_CLOSED;
             currentState = ServoState.CLAW_ACTION;
         }
+
         if(gamepad2.left_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD){
             shoulderTarget = SHOULDER_MIN;
         }
+
         if(gamepad2.right_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
             shoulderTarget = SHOULDER_MAX;
         }
+
         if(gamepad2.left_stick_y != 0){
             final int STEP = 50;
             double input = STEP * -gamepad2.left_stick_y;
 
             shoulderTarget = Math.max(SHOULDER_MIN, Math.min(shoulder.getCurrentPosition() + input,SHOULDER_MAX));
         }
+
         if(gamepad2.right_stick_y != 0){
             final int STEP = 50;
             double input = STEP * -gamepad2.right_stick_y;
@@ -176,8 +181,6 @@ public class StateMachineTeleop extends OpMode {
                 currentState = ServoState.CLAW_ACTION;  // jumps into state machine
             }
         }
-
-
     }
 
     public void stateMachine() {
@@ -186,7 +189,7 @@ public class StateMachineTeleop extends OpMode {
             case CLAW_ACTION:
                 telemetry.addData("State Machine", "Claw is moving");
                 moveClaw(); // move claw to the target
-                if (timer.seconds() > 1.0) { // wait for 1 second
+                if (timer.seconds() > 1.0) { // TODO find appropriate time for claw action
                     timer.reset();
                     currentState = ServoState.WRIST_ACTION; // jump to next state
                 }
@@ -195,7 +198,7 @@ public class StateMachineTeleop extends OpMode {
             case WRIST_ACTION:
                 telemetry.addData("State Machine", "Wrist is moving");
                 moveWrist(); // move wrist to the target
-                if (timer.seconds() > 1.0) { // wait for 1 second
+                if (timer.seconds() > 1.0) { // TODO find appropriate time for wrist action
                     timer.reset();
                     currentState = ServoState.COMPLETED; // jump to next state
                 }
@@ -213,19 +216,15 @@ public class StateMachineTeleop extends OpMode {
         }
     }
 
-
-
     public void moveWrist() {
         wrist.setPosition(wristTarget);
         telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
     }
 
-
     public void moveClaw() {
         claw.setPosition(clawTarget);
         telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
-
 
     public void moveShoulder() {
         shoulder.setTargetPosition((int)shoulderTarget);
@@ -235,7 +234,6 @@ public class StateMachineTeleop extends OpMode {
         telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
-
     public void moveSlide() {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -243,7 +241,6 @@ public class StateMachineTeleop extends OpMode {
 
         telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
-
 
     public void init() {
         // connect to hardware map
@@ -279,5 +276,4 @@ public class StateMachineTeleop extends OpMode {
 
         telemetry.update();
     }
-
 }
