@@ -18,6 +18,7 @@ public class StateMachineTeleop extends OpMode {
     enum ServoState {
         NONE,
         CLAW_ACTION,
+        SLIDE_ACTION,
         WRIST_ACTION,
         COMPLETED
     }
@@ -39,8 +40,8 @@ public class StateMachineTeleop extends OpMode {
     final double CLAW_CLOSED = 0;
 
     // Thresholds
-   final double SLIDE_POSITION_THRESHOLD = 1900;
-   final double SHOULDER_POSITION_THRESHOLD = 500;
+    final double SLIDE_POSITION_THRESHOLD = 1900;
+    final double SHOULDER_POSITION_THRESHOLD = 500;
 
     // Position targets
     // TODO: this assumes we have a block at the start
@@ -122,6 +123,8 @@ public class StateMachineTeleop extends OpMode {
             double input = STEP * -gamepad2.left_stick_y;
 
             shoulderTarget = Math.max(SHOULDER_MIN, Math.min(shoulder.getCurrentPosition() + input,SHOULDER_MAX));
+
+
         }
 
         if(gamepad2.right_stick_y != 0){
@@ -135,6 +138,8 @@ public class StateMachineTeleop extends OpMode {
                 max = SLIDE_X_MAX;
             }
             slideTarget = Math.max(SLIDE_MIN, Math.min(max, slide.getCurrentPosition() + input));
+
+            currentState = ServoState.SLIDE_ACTION;
         }
 
         if(currentState == ServoState.NONE) { // makes sure no other movements are happening and no conflicting presets
@@ -144,9 +149,12 @@ public class StateMachineTeleop extends OpMode {
                 timer.reset();
                 clawTarget = CLAW_CLOSED;
                 wristTarget = WRIST_UP;
-                slideTarget = SLIDE_MIN;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
+
+                slideTarget = SLIDE_MIN;
+//
+//                currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
 
             // PRESET: Releasing sample in basket and retracting
@@ -184,33 +192,40 @@ public class StateMachineTeleop extends OpMode {
     }
 
     public void stateMachine() {
-        telemetry.addData("State Machine", "Current state: %s", currentState);
+        // telemetry.addData("State Machine", "Current state: %s", currentState);
         switch (currentState) {
             case CLAW_ACTION:
-                telemetry.addData("State Machine", "Claw is moving");
+                // telemetry.addData("State Machine", "Claw is moving");
                 moveClaw(); // move claw to the target
-                if (timer.seconds() > 1.0) { // TODO find appropriate time for claw action
+                if (timer.seconds() > 0.5) { // TODO find appropriate time for claw action
                     timer.reset();
                     currentState = ServoState.WRIST_ACTION; // jump to next state
                 }
                 break;
 
             case WRIST_ACTION:
-                telemetry.addData("State Machine", "Wrist is moving");
+                // telemetry.addData("State Machine", "Wrist is moving");
                 moveWrist(); // move wrist to the target
                 if (timer.seconds() > 1.0) { // TODO find appropriate time for wrist action
                     timer.reset();
-                    currentState = ServoState.COMPLETED; // jump to next state
+                    currentState = ServoState.SLIDE_ACTION; // jump to next state
                 }
                 break;
 
+            case SLIDE_ACTION:
+                moveSlide();
+                currentState = ServoState.COMPLETED;
+                break;
+
+
+
             case COMPLETED:
-                telemetry.addData("State Machine", "Preset actions are complete");
+                // telemetry.addData("State Machine", "Preset actions are complete");
                 currentState = ServoState.NONE; // reset state for the next preset
                 break;
 
             case NONE:
-                telemetry.addData("State Machine", "No presets currently");
+                // telemetry.addData("State Machine", "No presets currently");
             default:
                 break;
         }
@@ -218,12 +233,12 @@ public class StateMachineTeleop extends OpMode {
 
     public void moveWrist() {
         wrist.setPosition(wristTarget);
-        telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
+        // telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
     }
 
     public void moveClaw() {
         claw.setPosition(clawTarget);
-        telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
+        // telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
     }
 
     public void moveShoulder() {
@@ -231,7 +246,7 @@ public class StateMachineTeleop extends OpMode {
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setPower(Math.abs(SHOULDER_POWER));
 
-        telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
+        // telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
     public void moveSlide() {
@@ -239,7 +254,7 @@ public class StateMachineTeleop extends OpMode {
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
 
-        telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
+        // telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
     public void init() {
@@ -270,10 +285,9 @@ public class StateMachineTeleop extends OpMode {
     public void loop() {
         moveRobot();
         moveShoulder();
-        moveSlide();
         gamepadInput();
         stateMachine();
 
-        telemetry.update();
+        // telemetry.update();
     }
 }
