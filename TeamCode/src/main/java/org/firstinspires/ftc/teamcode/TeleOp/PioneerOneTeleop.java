@@ -77,7 +77,6 @@ public class PioneerOneTeleop extends OpMode {
     }
 
     public void gamepadInput(){
-        // first checking overriding operations
         if(gamepad2.a){
             wristTarget = WRIST_DOWN;
         }
@@ -113,23 +112,31 @@ public class PioneerOneTeleop extends OpMode {
                 max = SLIDE_X_MAX;
             }
             slideTarget = Math.max(SLIDE_MIN, Math.min(max, slide.getCurrentPosition() + input));
-        } if (gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){
-            // this code initates when right trigger is pressed and robot is ready to pick up sample
+        }
+
+        // PRESET: Grabbed sample and retracting
+        if (gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() < 500){
             clawTarget = CLAW_CLOSED;
             wristTarget = WRIST_UP;
             slideTarget = SLIDE_MIN;
         }
+
+        // PRESET: Releasing sample in basket and retracting
         if(gamepad2.right_trigger>0.5 && shoulder.getCurrentPosition() > 500){
             clawTarget = CLAW_OPEN;
             wristTarget = WRIST_DOWN;
             slideTarget = SLIDE_MIN;
         }
+
+        // PRESET: Extends slide into Submersible for Sample pickup
         if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() < 500){
             clawTarget = CLAW_OPEN;
             wristTarget = WRIST_DOWN;
             slideTarget = SLIDE_X_MAX;
             shoulderTarget = SHOULDER_MIN;
         }
+
+        // PRESET: Extending slide into basket with wrist over basket
         if(gamepad2.left_trigger>0.5 && shoulder.getCurrentPosition() > 500){
             shoulderTarget = SHOULDER_MAX;
             slideTarget = SLIDE_Y_MAX;
