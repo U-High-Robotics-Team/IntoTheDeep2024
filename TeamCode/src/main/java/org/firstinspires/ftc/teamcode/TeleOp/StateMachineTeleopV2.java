@@ -95,47 +95,31 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void gamepadInput(){
-        // preset state requests
-        // TODO add these
-
         // manual move requests
-        // TODO add these
-
-
-
-        /* 
         if(gamepad2.a){
             wristTarget = WRIST_DOWN;
         }
         if(gamepad2.y){
             wristTarget = WRIST_UP;
         }
-
         if(gamepad2.x){
             clawTarget = CLAW_OPEN;
         }
-
         if(gamepad2.b){
             clawTarget = CLAW_CLOSED;
         }
-
-        if(gamepad2.left_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD){
+        if(gamepad2.left_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
             shoulderTarget = SHOULDER_MIN;
         }
-
         if(gamepad2.right_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
             shoulderTarget = SHOULDER_MAX;
         }
-
         if(gamepad2.left_stick_y != 0){
             final int STEP = 50;
             double input = STEP * -gamepad2.left_stick_y;
 
             shoulderTarget = Math.max(SHOULDER_MIN, Math.min(shoulder.getCurrentPosition() + input,SHOULDER_MAX));
-
-
         }
-
         if(gamepad2.right_stick_y != 0){
             final int STEP = 50;
             double input = STEP * -gamepad2.right_stick_y;
@@ -149,54 +133,37 @@ public class StateMachineTeleopV2 extends OpMode {
             slideTarget = Math.max(SLIDE_MIN, Math.min(max, slide.getCurrentPosition() + input));
         }
 
-        if(currentState == RobotState.NONE) { // makes sure no other movements are happening and no conflicting presets
-
-            // PRESET: Grabbed sample and retracting
-            if (gamepad2.right_trigger > 0.5 && shoulder.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
-                timer.reset();
-                clawTarget = CLAW_CLOSED;
-                wristTarget = WRIST_UP;
-
-                currentState = ServoState.CLAW_ACTION; // jumps into state machine
-
-                slideTarget = SLIDE_MIN;
-//
-//                currentState = ServoState.CLAW_ACTION; // jumps into state machine
-            }
-
-            // PRESET: Releasing sample in basket and retracting
-            if (gamepad2.right_trigger > 0.5 && shoulder.getCurrentPosition() > SHOULDER_POSITION_THRESHOLD) {
-                timer.reset();
-                clawTarget = CLAW_OPEN;
-                wristTarget = WRIST_DOWN;
-                slideTarget = SLIDE_MIN;
-
-                currentState = ServoState.CLAW_ACTION; // jumps into state machine
-            }
-
-            // PRESET: Extends slide into Submersible for Sample pickup
-            if (gamepad2.left_trigger > 0.5 && shoulder.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
-                timer.reset();
-                clawTarget = CLAW_OPEN;
-                wristTarget = WRIST_DOWN;
-                slideTarget = SLIDE_X_MAX;
-                shoulderTarget = SHOULDER_MIN;
-
-                currentState = ServoState.CLAW_ACTION; // jumps into state machine
-            }
-
-            // PRESET: Extending slide into basket with wrist over basket
-            if (gamepad2.left_trigger > 0.5 && shoulder.getCurrentPosition() > SHOULDER_POSITION_THRESHOLD) {
-                timer.reset();
-                shoulderTarget = SHOULDER_MAX;
-                slideTarget = SLIDE_Y_MAX;
-                wristTarget = WRIST_UP;
-                clawTarget = CLAW_CLOSED;
-
-                currentState = ServoState.CLAW_ACTION;  // jumps into state machine
-            }
+        if (gamepad2.right_trigger > 0.5 && currentState == RobotState.SUBMERSIBLE) {
+            timer.reset();
+            requestedState = RobotState.HOME;
         }
-            */
+
+        // preset state requests
+
+        // PRESET: Releasing sample in basket and retracting
+        if (gamepad2.right_trigger > 0.5 && currentState == RobotState.BASKET_4 || currentState == RobotState.BASKET_1) {
+            timer.reset();
+            requestedState = RobotState.HOME;
+        }
+
+        // PRESET: Extends slide into Submersible for Sample pickup
+        if (gamepad2.left_trigger > 0.5 && currentState == RobotState.HOME) {
+            timer.reset();
+            requestedState = RobotState.SUBMERSIBLE;
+        }
+
+        // PRESET: Extending slide into basket with wrist over basket
+        if (gamepad2.left_trigger > 0.5 && currentState == RobotState.BASKET_1) {
+            timer.reset();
+            requestedState = RobotState.BASKET_2;
+        }
+
+        // PRESET: Opens Claw and Brings Back Entire Slide back to Home
+        if(gamepad2.x && currentState == RobotState.BASKET_2){
+            timer.reset();
+            requestedState = RobotState.BASKET_3; // Same as home but with systematic process (ordering movements)
+        }
+
     }
 
     public void stateMachine() {
@@ -236,27 +203,53 @@ public class StateMachineTeleopV2 extends OpMode {
                 break;
                 
             case BASKET_1:
-                // immediate actions
-                // delayed actions
-                // allowed transistions from SUBMERSIBLE: HOME
+                shoulderTarget = SHOULDER_MAX;
+                wristTarget = WRIST_DOWN;
+
+                if (timer.seconds() > 2.0) {
+                    currentState = RobotState.BASKET_2;
+                    timer.reset();
+                }
+
                 break;
 
             case BASKET_2:
-                // immediate actions
-                // delayed actions
-                // allowed transistions from SUBMERSIBLE: HOME
+                slideTarget = SLIDE_Y_MAX;
+                clawTarget = CLAW_CLOSED;
+
+                if(timer.seconds() > 2.0){
+                    wristTarget = WRIST_UP;
+                }
+
+                if(requestedState == RobotState.BASKET_3){
+                    currentState = RobotState.BASKET_3;
+                    timer.reset();
+                }
                 break;
 
             case BASKET_3:
                 // immediate actions
-                // delayed actions
-                // allowed transistions from SUBMERSIBLE: HOME
+                clawTarget = CLAW_OPEN;
+
+                if(timer.seconds()> 1.0){
+                    currentState = RobotState.BASKET_4;
+                    timer.reset();
+                }
              break;
 
             case BASKET_4:
-                // immediate actions
-                // delayed actions
-                // allowed transistions from SUBMERSIBLE: HOME
+                wristTarget = WRIST_DOWN;
+
+                if(timer.seconds()>1.0){
+                    slideTarget = SLIDE_MIN;
+                    shoulderTarget = SHOULDER_MIN;
+                }
+
+                if(timer.seconds()>2.0){
+                    currentState = RobotState.HOME;
+                    timer.reset();
+                }
+
                 break;
 
             default:
