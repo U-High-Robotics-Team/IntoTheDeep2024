@@ -7,6 +7,11 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+// Notes:
+
+// 1) I have created two state machines depending on which order of actions want to be taken place
+// 2) I also have a boolean value that allows to be switch state machines in my loop
+// 3) Also the only reason I made this happen is so that we have code ready for driver practice in case v2 doesnt work
 
 @TeleOp(name = "State Machine TeleOp")
 public class StateMachineTeleop extends OpMode {
@@ -49,6 +54,7 @@ public class StateMachineTeleop extends OpMode {
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
+    boolean isFirstClaw = false;
 
     // Movement speed
     double wheelSpeed = 1;
@@ -149,10 +155,13 @@ public class StateMachineTeleop extends OpMode {
                 timer.reset();
                 clawTarget = CLAW_CLOSED;
                 wristTarget = WRIST_UP;
+                slideTarget = SLIDE_MIN;
+                isFirstClaw = true;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
 
-                slideTarget = SLIDE_MIN;
+
+
 //
 //                currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
@@ -163,6 +172,7 @@ public class StateMachineTeleop extends OpMode {
                 clawTarget = CLAW_OPEN;
                 wristTarget = WRIST_DOWN;
                 slideTarget = SLIDE_MIN;
+                isFirstClaw = true;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
@@ -174,6 +184,7 @@ public class StateMachineTeleop extends OpMode {
                 wristTarget = WRIST_DOWN;
                 slideTarget = SLIDE_X_MAX;
                 shoulderTarget = SHOULDER_MIN;
+                isFirstClaw = false;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
@@ -185,13 +196,55 @@ public class StateMachineTeleop extends OpMode {
                 slideTarget = SLIDE_Y_MAX;
                 wristTarget = WRIST_UP;
                 clawTarget = CLAW_CLOSED;
+                isFirstClaw = false;
 
                 currentState = ServoState.CLAW_ACTION;  // jumps into state machine
             }
         }
     }
 
-    public void stateMachine() {
+    public void stateMachineSlide() {
+        // telemetry.addData("State Machine", "Current state: %s", currentState);
+        switch (currentState) {
+
+
+            case SLIDE_ACTION:
+                moveSlide();
+                currentState = ServoState.WRIST_ACTION;
+                break;
+
+            case WRIST_ACTION:
+                // telemetry.addData("State Machine", "Wrist is moving");
+                moveWrist(); // move wrist to the target
+                if (timer.seconds() > 1.0) { // TODO find appropriate time for wrist action
+                    timer.reset();
+                    currentState = ServoState.CLAW_ACTION; // jump to next state
+                }
+                break;
+
+            case CLAW_ACTION:
+                // telemetry.addData("State Machine", "Claw is moving");
+                moveClaw(); // move claw to the target
+                if (timer.seconds() > 0.5) { // TODO find appropriate time for claw action
+                    timer.reset();
+                    currentState = ServoState.COMPLETED; // jump to next state
+                }
+                break;
+
+
+            case COMPLETED:
+                // telemetry.addData("State Machine", "Preset actions are complete");
+                currentState = ServoState.NONE; // reset state for the next preset
+                break;
+
+            case NONE:
+                // telemetry.addData("State Machine", "No presets currently");
+            default:
+                break;
+        }
+    }
+
+    public void stateMachineClaw() {
         // telemetry.addData("State Machine", "Current state: %s", currentState);
         switch (currentState) {
             case CLAW_ACTION:
@@ -286,7 +339,12 @@ public class StateMachineTeleop extends OpMode {
         moveRobot();
         moveShoulder();
         gamepadInput();
-        stateMachine();
+
+        if(isFirstClaw){
+            stateMachineClaw();
+        }{
+            stateMachineSlide();
+        }
 
         // telemetry.update();
     }
