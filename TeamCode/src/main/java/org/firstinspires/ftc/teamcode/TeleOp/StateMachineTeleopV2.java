@@ -17,8 +17,8 @@ public class StateMachineTeleopV2 extends OpMode {
     // Preset action states
     enum RobotState {
         NONE,
-        HOME_STATE,
-        SUBMERSIBLE_STATE,
+        HOME,
+        SUBMERSIBLE,
         BASKET_1,
         BASKET_2,
         BASKET_3,
@@ -92,10 +92,18 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void gamepadInput(){
+        // preset state requests
+        // TODO add these
+
+        // manual move requests
+        // TODO add these
+
+
+
+        /* 
         if(gamepad2.a){
             wristTarget = WRIST_DOWN;
         }
-
         if(gamepad2.y){
             wristTarget = WRIST_UP;
         }
@@ -185,53 +193,82 @@ public class StateMachineTeleopV2 extends OpMode {
                 currentState = ServoState.CLAW_ACTION;  // jumps into state machine
             }
         }
+            */
     }
 
     public void stateMachine() {
-        telemetry.addData("State Machine", "Current state: %s", currentState);
         switch (currentState) {
-            case CLAW_ACTION:
-                // telemetry.addData("State Machine", "Claw is moving");
-                moveClaw(); // move claw to the target
-                if (timer.seconds() > 0.5) { // TODO find appropriate time for claw action
-                    timer.reset();
-                    currentState = ServoState.WRIST_ACTION; // jump to next state
+            case HOME:
+                // immediate actions
+                wristTarget = WRIST_UP;
+                // delayed actions
+                if (timer.seconds() > 1.0) {
+                    clawtarget = CLAW_CLOSED;
+                    shoulderTarget = SHOULDER_MIN;
+                    slideTarget = SLIDE_MIN;
+                }
+                // allowed transistions from HOME: SUBMERSIBLE, BASKET_1
+                if (requestedState == RobotState.SUBMERSIBLE){
+                    currentState == RobotState.SUBMERSIBLE;
+                    timer.reset();  // start delay timer for wrist movement
+                } else if (requestedState == RobotState.BASKET_1){
+                    currentState == RobotState.BASKET_1;
+                }
+            break;
+            
+            case SUBMERSIBLE:
+                // immediate actions
+                clawtarget = CLAW_OPEN;
+                shoulderTarget = SHOULDER_MIN;
+                slideTarget = SLIDE_X_MAX;
+                // delayed actions
+                if (timer.seconds() > 1.0) {
+                    wristTarget = WRIST_DOWN;
+                }
+                // allowed transistions from SUBMERSIBLE: HOME
+                if (requestedState == RobotState.HOME){
+                    currentState == RobotState.HOME;
+                    timer.reset();  // start delay timer for wrist movement
                 }
                 break;
-
-            case WRIST_ACTION:
-                // telemetry.addData("State Machine", "Wrist is moving");
-                moveWrist(); // move wrist to the target
-                if (timer.seconds() > 1.0) { // TODO find appropriate time for wrist action
-                    timer.reset();
-                    currentState = ServoState.SLIDE_ACTION; // jump to next state
-                }
+                
+            case BASKET_1:
+                // immediate actions
+                // delayed actions
+                // allowed transistions from SUBMERSIBLE: HOME
                 break;
 
-            case SLIDE_ACTION:
-                moveSlide();
-                currentState = ServoState.COMPLETED;
+            case BASKET_2:
+                // immediate actions
+                // delayed actions
+                // allowed transistions from SUBMERSIBLE: HOME
                 break;
 
+            case BASKET_1:
+                // immediate actions
+                // delayed actions
+                // allowed transistions from SUBMERSIBLE: HOME
+             break;
 
-
-            case COMPLETED:
-                // telemetry.addData("State Machine", "Preset actions are complete");
-                currentState = ServoState.NONE; // reset state for the next preset
+            case BASKET_1:
+                // immediate actions
+                // delayed actions
+                // allowed transistions from SUBMERSIBLE: HOME
                 break;
 
-            case NONE:
-                // telemetry.addData("State Machine", "No presets currently");
             default:
-                break;
+                currentState = RobotState.UNKNOWN:
+            
+            break;
         }
+        telemetry.addData("State Machine", "Current state: %s", currentState);
     }
-
+    
     public void moveWrist() {
         wrist.setPosition(wristTarget);
         // telemetry.addData("Wrist Target ", "(%.2f)", wristTarget);
     }
-
+    
     public void moveClaw() {
         claw.setPosition(clawTarget);
         // telemetry.addData("Claw Target ", "(%.2f)", clawTarget);
