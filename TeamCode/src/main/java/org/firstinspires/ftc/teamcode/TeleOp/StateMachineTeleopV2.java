@@ -18,17 +18,13 @@ public class StateMachineTeleopV2 extends OpMode {
     enum RobotState {
         NONE,
         HOME_STATE,
-
         SUBMERSIBLE_STATE,
-
-        PRE_BASKET_STATE,
-
-        BASKET_STATE,
-
-        COMPLETED
+        BASKET_1,
+        BASKET_2,
+        BASKET_3,
+        BASKET_4,
+        UNKNOWN             // when moved manually into another pose
     }
-
-    private RobotState currentState = RobotState.NONE;
 
     // Performance constants
     final int SLIDE_Y_MAX = 2400;
@@ -43,20 +39,25 @@ public class StateMachineTeleopV2 extends OpMode {
     final double WRIST_CLIP = 0.3; // unused currently
     final double CLAW_OPEN = 0.6;
     final double CLAW_CLOSED = 0;
-
-    // Thresholds
+    final double WHEEL_SPEED_MAX = 1;
+    final double WHEEL_SPEED_LIMTED = 0.2;
+    
+    // Threshold where extended slide causes drive mode to be slower
     final double SLIDE_POSITION_THRESHOLD = 1900;
+    // Threshold where lowered should limits maximum slide extension to comply with size rules
     final double SHOULDER_POSITION_THRESHOLD = 500;
-
+    
     // Position targets
-    // TODO: this assumes we have a block at the start
+    private RobotState currentState = RobotState.HOME;
+    private RobotState requestedState = RobotState.NONE;
+    // TODO: ensure that robot is physically in the HOME state configuration
     double shoulderTarget = SHOULDER_MIN;
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
 
     // Movement speed
-    double wheelSpeed = 1;
+    double wheelSpeed = WHEEL_SPEED_MAX;
 
     // initalizing motors
     private DcMotor BLeft;
@@ -69,25 +70,21 @@ public class StateMachineTeleopV2 extends OpMode {
     private Servo claw;
 
     public void moveRobot() {
-        if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
-            this.wheelSpeed = 0.2;
-        }else{
-            this.wheelSpeed = 1;
-        }
-
-        double vertical;
-        double horizontal;
-        double pivot;
-
-        // back to linear speeds
+        // response curve is set to linear - can be adjusted for more or less sensitivity
         double leftStickY = gamepad1.left_stick_y;
         double leftStickX = gamepad1.left_stick_x;
         double rightStickX = gamepad1.right_stick_x;
 
-        vertical = wheelSpeed * leftStickY;
-        horizontal = wheelSpeed * -leftStickX;
-        pivot = wheelSpeed * -rightStickX;
-
+        if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
+            this.wheelSpeed = WHEEL_SPEED_LIMTED;
+        }else{
+            this.wheelSpeed = WHEEL_SPEED_MAX;
+        }
+        
+        double vertical = wheelSpeed * leftStickY;
+        double horizontal = wheelSpeed * -leftStickX; 
+        double pivot = wheelSpeed * -rightStickX;
+        
         FRight.setPower((pivot + (-vertical + horizontal)));
         BRight.setPower(pivot + (-vertical - horizontal));
         FLeft.setPower((-pivot + (-vertical - horizontal)));
@@ -191,7 +188,7 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void stateMachine() {
-        // telemetry.addData("State Machine", "Current state: %s", currentState);
+        telemetry.addData("State Machine", "Current state: %s", currentState);
         switch (currentState) {
             case CLAW_ACTION:
                 // telemetry.addData("State Machine", "Claw is moving");
@@ -232,19 +229,18 @@ public class StateMachineTeleopV2 extends OpMode {
 
     public void moveWrist() {
         wrist.setPosition(wristTarget);
-        // telemetry.addData("Wrist Current / Target ", "(%.2f, %.2f)", 0.0, wristTarget);
+        // telemetry.addData("Wrist Target ", "(%.2f)", wristTarget);
     }
 
     public void moveClaw() {
         claw.setPosition(clawTarget);
-        // telemetry.addData("Claw Current / Target ", "(%.2f, %.2f)", 0.0, clawTarget);
+        // telemetry.addData("Claw Target ", "(%.2f)", clawTarget);
     }
 
     public void moveShoulder() {
         shoulder.setTargetPosition((int)shoulderTarget);
         shoulder.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         shoulder.setPower(Math.abs(SHOULDER_POWER));
-
         // telemetry.addData("Shoulder Current / Target ", "(%.2f, %.2f)", shoulder.getCurrentPosition(), shoulderTarget);
     }
 
@@ -252,7 +248,6 @@ public class StateMachineTeleopV2 extends OpMode {
         slide.setTargetPosition((int)slideTarget);
         slide.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         slide.setPower(Math.abs(SLIDE_POWER));
-
         // telemetry.addData("Slide Current / Target ", "(%.2f, %.2f)", slide.getCurrentPosition(), slideTarget);
     }
 
@@ -282,11 +277,12 @@ public class StateMachineTeleopV2 extends OpMode {
     }
 
     public void loop() {
-        moveRobot();
-        moveShoulder();
         gamepadInput();
         stateMachine();
-
-        // telemetry.update();
+        moveRobot();
+        moveShoulder();
+        moveSlide();
+        moveClaw();
+        telemetry.update();
     }
 }
