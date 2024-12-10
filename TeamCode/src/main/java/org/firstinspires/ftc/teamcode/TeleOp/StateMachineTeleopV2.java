@@ -26,6 +26,10 @@ public class StateMachineTeleopV2 extends OpMode {
         UNKNOWN             // when moved manually into another pose
     }
 
+    RobotState currentState = RobotState.NONE;
+    RobotState requestedState = RobotState.NONE;
+
+
     // Performance constants
     final int SLIDE_Y_MAX = 2400;
     final int SLIDE_X_MAX = 1000; // Maximum position (top)
@@ -202,22 +206,22 @@ public class StateMachineTeleopV2 extends OpMode {
                 wristTarget = WRIST_UP;
                 // delayed actions
                 if (timer.seconds() > 1.0) {
-                    clawtarget = CLAW_CLOSED;
+                    clawTarget = CLAW_CLOSED;
                     shoulderTarget = SHOULDER_MIN;
                     slideTarget = SLIDE_MIN;
                 }
                 // allowed transistions from HOME: SUBMERSIBLE, BASKET_1
                 if (requestedState == RobotState.SUBMERSIBLE){
-                    currentState == RobotState.SUBMERSIBLE;
+                    currentState = RobotState.SUBMERSIBLE;
                     timer.reset();  // start delay timer for wrist movement
                 } else if (requestedState == RobotState.BASKET_1){
-                    currentState == RobotState.BASKET_1;
+                    currentState = RobotState.BASKET_1;
                 }
             break;
             
             case SUBMERSIBLE:
                 // immediate actions
-                clawtarget = CLAW_OPEN;
+                clawTarget = CLAW_OPEN;
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
                 // delayed actions
@@ -226,7 +230,7 @@ public class StateMachineTeleopV2 extends OpMode {
                 }
                 // allowed transistions from SUBMERSIBLE: HOME
                 if (requestedState == RobotState.HOME){
-                    currentState == RobotState.HOME;
+                    currentState = RobotState.HOME;
                     timer.reset();  // start delay timer for wrist movement
                 }
                 break;
@@ -243,13 +247,13 @@ public class StateMachineTeleopV2 extends OpMode {
                 // allowed transistions from SUBMERSIBLE: HOME
                 break;
 
-            case BASKET_1:
+            case BASKET_3:
                 // immediate actions
                 // delayed actions
                 // allowed transistions from SUBMERSIBLE: HOME
              break;
 
-            case BASKET_1:
+            case BASKET_4:
                 // immediate actions
                 // delayed actions
                 // allowed transistions from SUBMERSIBLE: HOME
