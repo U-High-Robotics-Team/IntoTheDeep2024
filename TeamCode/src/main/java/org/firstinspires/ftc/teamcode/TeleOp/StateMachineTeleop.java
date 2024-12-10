@@ -10,8 +10,10 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 // Notes:
 
 // 1) I have created two state machines depending on which order of actions want to be taken place
+//     - Option 1: claw, wrist, and then slide
+//     - Option 2: slide, wrist, and then claw
 // 2) I also have a boolean value that allows to be switch state machines in my loop
-// 3) Also the only reason I made this happen is so that we have code ready for driver practice in case v2 doesnt work
+// 3) Also the only reason I approached it this way was so we have code ready to practice with
 
 @TeleOp(name = "State Machine TeleOp")
 public class StateMachineTeleop extends OpMode {
