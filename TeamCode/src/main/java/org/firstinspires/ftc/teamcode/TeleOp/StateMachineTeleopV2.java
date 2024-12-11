@@ -17,7 +17,6 @@ public class StateMachineTeleopV2 extends OpMode {
 
     // Preset action states
     enum RobotState {
-        NONE,
         HOME,
         SUB_1,
         SUB_2,
@@ -28,7 +27,6 @@ public class StateMachineTeleopV2 extends OpMode {
         BASKET_4,
         UNKNOWN             // when moved manually into another pose
     }
-
 
     // Performance constants
     final int SLIDE_Y_MAX = 2400;
@@ -46,21 +44,22 @@ public class StateMachineTeleopV2 extends OpMode {
     final double WHEEL_SPEED_MAX = 1;
     final double WHEEL_SPEED_LIMITED = 0.17;
 
-    // Thresholds
+    // Threshold where speed is reduced when slide is extended
     final double SLIDE_POSITION_THRESHOLD = 700;
+    // Threshold where slide estension is limited with should down to stay within size limits
     final double SHOULDER_POSITION_THRESHOLD = 500;
 
-    // Initial Targets
-    RobotState currentState = RobotState.HOME;
-    RobotState requestedState = RobotState.HOME;
-    // TODO: this assumes we have a block at the start
+    // set initial position ...
     double shoulderTarget = SHOULDER_MIN;
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
     double wheelSpeed = WHEEL_SPEED_MAX;
-
-    // initalizing motors
+    // ... then set current state to match above position
+    RobotState currentState = RobotState.HOME;
+    RobotState requestedState = RobotState.HOME;
+    
+    // Declare motors
     private DcMotor BLeft;
     private DcMotor BRight;
     private DcMotor FLeft;
@@ -71,26 +70,22 @@ public class StateMachineTeleopV2 extends OpMode {
     private Servo claw;
 
     public void moveRobot() {
-        // speed input sensitivity is linear right now - this can be adjusted
+        // input sensitivity is linear right now - this can be adjusted
         double leftStickY = gamepad1.left_stick_y;
         double leftStickX = gamepad1.left_stick_x;
         double rightStickX = gamepad1.right_stick_x;
 
         if(slide.getCurrentPosition()>SLIDE_POSITION_THRESHOLD){
-            this.wheelSpeed = WHEEL_SPEED_LIMITED;
+            wheelSpeed = WHEEL_SPEED_LIMITED;
         }else{
-            this.wheelSpeed = WHEEL_SPEED_MAX;
+            wheelSpeed = WHEEL_SPEED_MAX;
         }
 
-        double vertical;
-        double horizontal;
-        double pivot;
+        double vertical = wheelSpeed * leftStickY;
+        double horizontal = wheelSpeed * -leftStickX;
+        double pivot = wheelSpeed * -rightStickX;
 
-
-        vertical = wheelSpeed * leftStickY;
-        horizontal = wheelSpeed * -leftStickX;
-        pivot = wheelSpeed * -rightStickX;
-
+        // mecanum wheel power calculations
         FRight.setPower((pivot + (-vertical + horizontal)));
         BRight.setPower(pivot + (-vertical - horizontal));
         FLeft.setPower((-pivot + (-vertical - horizontal)));
@@ -112,9 +107,9 @@ public class StateMachineTeleopV2 extends OpMode {
             requestedState = RobotState.BASKET_2;
         }
 
-
         // manual move requests
         if(gamepad2.a){
+            // Preset to grab block
             if(currentState == RobotState.SUB_1){
                 requestedState = RobotState.SUB_2;
             }else{
@@ -128,7 +123,7 @@ public class StateMachineTeleopV2 extends OpMode {
             clawTarget = CLAW_CLOSED;
         }
         if(gamepad2.x){
-            // PRESET: Opens Claw and Brings Back Entire Slide back to Home
+            // Preset to return to home
             if(currentState == RobotState.BASKET_2){
                 requestedState = RobotState.BASKET_3; // Same as home but with systematic process (ordering movements)
             } else {
@@ -170,14 +165,15 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 clawTarget = CLAW_CLOSED;
 
+                // delayed actions
                 if(timer.seconds() > 0.6){
                     wristTarget = WRIST_UP;
                 }
-                // delayed actions
                 if (timer.seconds() > 1.1) {
                     shoulderTarget = SHOULDER_MIN;
                     slideTarget = SLIDE_MIN;
                 }
+
                 // allowed transistions from HOME: SUBMERSIBLE, BASKET_1
                 if (requestedState == RobotState.SUB_1){
                     currentState = RobotState.SUB_1;
@@ -194,6 +190,10 @@ public class StateMachineTeleopV2 extends OpMode {
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
                 wristTarget = WRIST_CLIP;
+
+                // delayed actions
+                // (none)
+
                 // allowed transistions from SUB: HOME, SUB_2
                 if (requestedState == RobotState.HOME){
                     currentState = RobotState.HOME;
@@ -209,21 +209,26 @@ public class StateMachineTeleopV2 extends OpMode {
                 wristTarget = WRIST_DOWN;
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
+
                 // delayed actoins
                 if(timer.seconds() > 0.9){
                     clawTarget = CLAW_CLOSED;
                 }
+
+                // allowed transitions
                 if(timer.seconds() > 1.9){
                     currentState = RobotState.SUB_3;
                     timer.reset();
                 }
-                // allowed transition
                 break;
-
 
             case SUB_3:
                 // immediate actions
                 wristTarget = WRIST_UP;
+
+                // delayed actions
+                // (none)
+
                 // allowed transition
                 if (requestedState == RobotState.HOME){
                     currentState = RobotState.HOME;
@@ -238,7 +243,10 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 shoulderTarget = SHOULDER_MAX;
                 wristTarget = WRIST_DOWN;
+
                 // delayed actions
+                // (none)
+
                 // allowed transistions
                 if (timer.seconds() > 2.0) {
                     currentState = RobotState.BASKET_2;
@@ -247,13 +255,16 @@ public class StateMachineTeleopV2 extends OpMode {
                 break;
 
             case BASKET_2:
+                // immediate actions
                 slideTarget = SLIDE_Y_MAX;
                 clawTarget = CLAW_CLOSED;
 
+                // delayed actions
                 if(timer.seconds() > 2.0){
                     wristTarget = WRIST_UP;
                 }
 
+                // allowed transitions
                 if(requestedState == RobotState.BASKET_3){
                     currentState = RobotState.BASKET_3;
                     timer.reset();
@@ -264,30 +275,34 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 clawTarget = CLAW_OPEN;
 
-                if(timer.seconds()> 1.0){
+                // delayed actions
+                // (none)
+                
+                // allowed transitions
+                if(timer.seconds() > 1.0){
                     currentState = RobotState.BASKET_4;
                     timer.reset();
                 }
                 break;
 
             case BASKET_4:
+                // immediate actions
                 wristTarget = WRIST_DOWN;
-
-                if(timer.seconds()>1.0){
+                
+                if(timer.seconds() > 1.0){
                     slideTarget = SLIDE_MIN;
                     shoulderTarget = SHOULDER_MAX;
                 }
-
+                
+                // allowed transitions
                 if(timer.seconds()>2.0){
                     currentState = RobotState.HOME;
                     timer.reset();
                 }
-
                 break;
 
             default:
                 currentState = RobotState.UNKNOWN;
-
                 break;
         }
         telemetry.addData("State Machine", "Current state: %s", currentState);
@@ -328,7 +343,7 @@ public class StateMachineTeleopV2 extends OpMode {
         claw = hardwareMap.get(Servo.class, "claw");
         wrist = hardwareMap.get(Servo.class, "wrist");
 
-        // setting encoders
+        // set encoders
         shoulder.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         slide.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
