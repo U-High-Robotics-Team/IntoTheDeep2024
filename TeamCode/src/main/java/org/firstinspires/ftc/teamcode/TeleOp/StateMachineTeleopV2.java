@@ -103,34 +103,35 @@ public class StateMachineTeleopV2 extends OpMode {
         if (gamepad2.left_bumper){
             requestedState = RobotState.BASKET_1;
         }
-        if (gamepad2.left_trigger >0.5){
+        if (gamepad2.left_trigger > 0.5){
             requestedState = RobotState.BASKET_2;
         }
-
-        // manual move requests
-        if(gamepad2.a){
+       if(gamepad2.a){
             // Preset to grab block
             if(currentState == RobotState.SUB_1){
                 requestedState = RobotState.SUB_2;
             }else{
-                clawTarget = WRIST_DOWN;
+                // clawTarget = WRIST_DOWN;
             }
-        }
-        if(gamepad2.y){
-            wristTarget = WRIST_UP;
-        }
-        if(gamepad2.b){
-            clawTarget = CLAW_CLOSED;
         }
         if(gamepad2.x){
             // Preset to return to home
             if(currentState == RobotState.BASKET_2){
                 requestedState = RobotState.BASKET_3; // Same as home but with systematic process (ordering movements)
             } else {
-                clawTarget = CLAW_OPEN;
+                //clawTarget = CLAW_OPEN;
             }
         }
         /*
+        NOTE : manual modes have been removed (commented out) from this version of the OpMode
+        if(gamepad2.y){
+            wristTarget = WRIST_UP;
+        }
+        if(gamepad2.b){
+            clawTarget = CLAW_CLOSED;
+        }
+
+
         if(gamepad2.left_bumper && slide.getCurrentPosition() < SHOULDER_POSITION_THRESHOLD) {
             shoulderTarget = SHOULDER_MIN;
         }
