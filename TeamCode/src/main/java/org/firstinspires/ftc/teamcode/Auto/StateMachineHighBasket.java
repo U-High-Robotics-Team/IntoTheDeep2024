@@ -124,7 +124,9 @@ public class StateMachineHighBasket extends LinearOpMode {
 
         requestedState = RobotState.BASKET_1;
 
-        while(presetTimer.seconds()<5.0) {
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<3.0) {
             stateMachine();
             moveShoulder();
             moveSlide();
@@ -134,13 +136,20 @@ public class StateMachineHighBasket extends LinearOpMode {
 
         requestedState = RobotState.BASKET_3;
 
-        while(presetTimer.seconds()<20.0) {
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<4.0) {
             stateMachine();
             moveShoulder();
             moveSlide();
             moveWrist();
             moveClaw();
         }
+
+        movePosition(550,-550,550,-550);
+        movePosition(-300,300,300,-300);
+
+        movePosition(-200,-200,-200,-200);
     }
 
     public void stateMachine() {
