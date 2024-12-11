@@ -40,8 +40,8 @@ public class StateMachineTeleop extends OpMode {
     final int SHOULDER_MAX = 1400;
     final int SHOULDER_MIN = 0;
     final double SHOULDER_POWER = 0.6;
-    final double WRIST_UP = 0.6;
-    final double WRIST_DOWN = 0.9;
+    final double WRIST_UP = 0;
+    final double WRIST_DOWN = 0.65;
     final double WRIST_CLIP = 0.3; // unused currently
     final double CLAW_OPEN = 0.6;
     final double CLAW_CLOSED = 0;
@@ -56,8 +56,6 @@ public class StateMachineTeleop extends OpMode {
     double wristTarget = WRIST_UP;
     double clawTarget = CLAW_CLOSED;
     double slideTarget = SLIDE_MIN;
-    boolean isFirstClaw = false;
-
     // Movement speed
     double wheelSpeed = 1;
 
@@ -158,7 +156,6 @@ public class StateMachineTeleop extends OpMode {
                 clawTarget = CLAW_CLOSED;
                 wristTarget = WRIST_UP;
                 slideTarget = SLIDE_MIN;
-                isFirstClaw = true;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
 
@@ -174,7 +171,6 @@ public class StateMachineTeleop extends OpMode {
                 clawTarget = CLAW_OPEN;
                 wristTarget = WRIST_DOWN;
                 slideTarget = SLIDE_MIN;
-                isFirstClaw = true;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
@@ -186,7 +182,6 @@ public class StateMachineTeleop extends OpMode {
                 wristTarget = WRIST_DOWN;
                 slideTarget = SLIDE_X_MAX;
                 shoulderTarget = SHOULDER_MIN;
-                isFirstClaw = false;
 
                 currentState = ServoState.CLAW_ACTION; // jumps into state machine
             }
@@ -198,7 +193,6 @@ public class StateMachineTeleop extends OpMode {
                 slideTarget = SLIDE_Y_MAX;
                 wristTarget = WRIST_UP;
                 clawTarget = CLAW_CLOSED;
-                isFirstClaw = false;
 
                 currentState = ServoState.CLAW_ACTION;  // jumps into state machine
             }
@@ -342,11 +336,7 @@ public class StateMachineTeleop extends OpMode {
         moveShoulder();
         gamepadInput();
 
-        if(isFirstClaw){
-            stateMachineClaw();
-        }{
-            stateMachineSlide();
-        }
+        stateMachineClaw();
 
         // telemetry.update();
     }
