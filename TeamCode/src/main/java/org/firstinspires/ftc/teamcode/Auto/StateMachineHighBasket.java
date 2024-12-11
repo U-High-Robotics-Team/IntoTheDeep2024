@@ -1,13 +1,15 @@
 package org.firstinspires.ftc.teamcode.Auto;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.robot.RobotState;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-
+@Autonomous (name = "State Machine High Basket")
 public class StateMachineHighBasket extends LinearOpMode {
 
     // Variables for PID Controller
@@ -15,7 +17,7 @@ public class StateMachineHighBasket extends LinearOpMode {
     double kP = 0.0024; // bigger the error the faster we will fix it
     double kI = 0.00013; // provides extra boost when you get close to the target
     double kD = 0.00015; // dampens overshoot
-    double toleranceLevel = 30; // TODO Find appropriate values
+    double toleranceLevel = 40; // TODO Find appropriate values
     double bRError;
     double bLError;
     double fRError;
@@ -52,7 +54,7 @@ public class StateMachineHighBasket extends LinearOpMode {
     final double WRIST_DOWN = 0.65;
     final double WRIST_CLIP = 0.3; // unused currently
     final double CLAW_OPEN = 0.6;
-    final double CLAW_CLOSED = 0;
+    final double CLAW_CLOSED = 0.25;
     final double WHEEL_SPEED_MAX = 1;
     final double WHEEL_SPEED_LIMITED = 0.17;
 
@@ -109,16 +111,16 @@ public class StateMachineHighBasket extends LinearOpMode {
         waitForStart();
 
         // Strafe Left
-        movePosition(400,-400,-400,400);
+        movePosition(480,-480,-480,480);
 
         // Move Backwards
         movePosition(-720, -720, -720, -720);
 
         // Rotate Right
-        movePosition(380,-380,380,-380);
+        movePosition(550,-550,550,-550);
 
         // Move Backwards a Little
-        movePosition(-100,-100,-100,-100);
+        movePosition(-120,-120,-120,-120);
 
         requestedState = RobotState.BASKET_1;
 
@@ -132,7 +134,7 @@ public class StateMachineHighBasket extends LinearOpMode {
 
         requestedState = RobotState.BASKET_3;
 
-        while(presetTimer.seconds()<5.0) {
+        while(presetTimer.seconds()<20.0) {
             stateMachine();
             moveShoulder();
             moveSlide();
