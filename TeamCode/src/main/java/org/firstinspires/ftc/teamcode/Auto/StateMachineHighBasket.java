@@ -120,7 +120,78 @@ public class StateMachineHighBasket extends LinearOpMode {
         movePosition(550,-550,550,-550);
 
         // Move Backwards a Little
-        movePosition(-120,-120,-120,-120);
+        movePosition(-150,-150,-150,-150);
+
+        requestedState = RobotState.BASKET_1;
+
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<3.0) {
+            stateMachine();
+            moveShoulder();
+            moveSlide();
+            moveWrist();
+            moveClaw();
+        }
+
+        requestedState = RobotState.BASKET_3;
+
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<2.4) {
+            stateMachine();
+            moveShoulder();
+            moveSlide();
+            moveWrist();
+            moveClaw();
+        }
+
+        movePosition(550,-550,550,-550);
+        movePosition(-300,300,300,-300);
+
+
+        movePosition(350,350,350,350);
+
+        requestedState = RobotState.SUB_1;
+
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<1) {
+            stateMachine();
+            moveShoulder();
+            moveSlide();
+            moveWrist();
+            moveClaw();
+        }
+
+        requestedState = RobotState.SUB_2;
+
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<0.7) {
+            stateMachine();
+            moveShoulder();
+            moveSlide();
+            moveWrist();
+            moveClaw();
+        }
+
+        requestedState = RobotState.HOME;
+
+        presetTimer.reset();
+
+        while(presetTimer.seconds()<2.0) {
+            stateMachine();
+            moveShoulder();
+            moveSlide();
+            moveWrist();
+            moveClaw();
+        }
+
+        movePosition(-350,-350,-350,-350);
+        movePosition(300,-300,-300,300);
+
+        movePosition(-550,550,-550,550);
 
         requestedState = RobotState.BASKET_1;
 
@@ -145,11 +216,6 @@ public class StateMachineHighBasket extends LinearOpMode {
             moveWrist();
             moveClaw();
         }
-
-        movePosition(550,-550,550,-550);
-        movePosition(-300,300,300,-300);
-
-        movePosition(-200,-200,-200,-200);
     }
 
     public void stateMachine() {
@@ -198,10 +264,10 @@ public class StateMachineHighBasket extends LinearOpMode {
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
                 // delayed actoins
-                if(presetTimer.seconds() > 0.9){
+                if(presetTimer.seconds() > 0.4){
                     clawTarget = CLAW_CLOSED;
                 }
-                if(presetTimer.seconds() > 1.9){
+                if(presetTimer.seconds() > 0.8){
                     currentState = RobotState.SUB_3;
                     presetTimer.reset();
                 }
@@ -228,7 +294,7 @@ public class StateMachineHighBasket extends LinearOpMode {
                 wristTarget = WRIST_DOWN;
                 // delayed actions
                 // allowed transistions
-                if (presetTimer.seconds() > 2.0) {
+                if (presetTimer.seconds() > 1.5) {
                     currentState = RobotState.BASKET_2;
                     presetTimer.reset();
                 }
@@ -238,7 +304,7 @@ public class StateMachineHighBasket extends LinearOpMode {
                 slideTarget = SLIDE_Y_MAX;
                 clawTarget = CLAW_CLOSED;
 
-                if(presetTimer.seconds() > 2.0){
+                if(presetTimer.seconds() > 1.4){
                     wristTarget = WRIST_UP;
                 }
 
