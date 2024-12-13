@@ -8,6 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.Auto.StateMachineHighBasket;
+
 
 @TeleOp(name = "State Machine TeleOp V2")
 public class StateMachineTeleopV2 extends OpMode {
@@ -58,7 +60,7 @@ public class StateMachineTeleopV2 extends OpMode {
     // ... then set current state to match above position
     RobotState currentState = RobotState.HOME;
     RobotState requestedState = RobotState.HOME;
-    
+
     // Declare motors
     private DcMotor BLeft;
     private DcMotor BRight;
@@ -106,7 +108,7 @@ public class StateMachineTeleopV2 extends OpMode {
         if (gamepad2.left_trigger > 0.5){
             requestedState = RobotState.BASKET_2;
         }
-       if(gamepad2.a){
+        if(gamepad2.a){
             // Preset to grab block
             if(currentState == RobotState.SUB_1){
                 requestedState = RobotState.SUB_2;
@@ -166,15 +168,14 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 clawTarget = CLAW_CLOSED;
 
-                // delayed actions
-                if(timer.seconds() > 0.6){
+                if(timer.seconds() > 0.3){
                     wristTarget = WRIST_UP;
                 }
-                if (timer.seconds() > 1.1) {
+                // delayed actions
+                if (timer.seconds() > 0.4) {
                     shoulderTarget = SHOULDER_MIN;
                     slideTarget = SLIDE_MIN;
                 }
-
                 // allowed transistions from HOME: SUBMERSIBLE, BASKET_1
                 if (requestedState == RobotState.SUB_1){
                     currentState = RobotState.SUB_1;
@@ -191,10 +192,6 @@ public class StateMachineTeleopV2 extends OpMode {
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
                 wristTarget = WRIST_CLIP;
-
-                // delayed actions
-                // (none)
-
                 // allowed transistions from SUB: HOME, SUB_2
                 if (requestedState == RobotState.HOME){
                     currentState = RobotState.HOME;
@@ -210,26 +207,21 @@ public class StateMachineTeleopV2 extends OpMode {
                 wristTarget = WRIST_DOWN;
                 shoulderTarget = SHOULDER_MIN;
                 slideTarget = SLIDE_X_MAX;
-
                 // delayed actoins
-                if(timer.seconds() > 0.9){
+                if(timer.seconds() > 0.4){
                     clawTarget = CLAW_CLOSED;
                 }
-
-                // allowed transitions
-                if(timer.seconds() > 1.9){
+                if(timer.seconds() > 0.8){
                     currentState = RobotState.SUB_3;
                     timer.reset();
                 }
+                // allowed transition
                 break;
+
 
             case SUB_3:
                 // immediate actions
                 wristTarget = WRIST_UP;
-
-                // delayed actions
-                // (none)
-
                 // allowed transition
                 if (requestedState == RobotState.HOME){
                     currentState = RobotState.HOME;
@@ -244,28 +236,22 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 shoulderTarget = SHOULDER_MAX;
                 wristTarget = WRIST_DOWN;
-
                 // delayed actions
-                // (none)
-
                 // allowed transistions
-                if (timer.seconds() > 2.0) {
+                if (timer.seconds() > 1.5) {
                     currentState = RobotState.BASKET_2;
                     timer.reset();
                 }
                 break;
 
             case BASKET_2:
-                // immediate actions
                 slideTarget = SLIDE_Y_MAX;
                 clawTarget = CLAW_CLOSED;
 
-                // delayed actions
-                if(timer.seconds() > 2.0){
+                if(timer.seconds() > 1.4){
                     wristTarget = WRIST_UP;
                 }
 
-                // allowed transitions
                 if(requestedState == RobotState.BASKET_3){
                     currentState = RobotState.BASKET_3;
                     timer.reset();
@@ -276,39 +262,34 @@ public class StateMachineTeleopV2 extends OpMode {
                 // immediate actions
                 clawTarget = CLAW_OPEN;
 
-                // delayed actions
-                // (none)
-                
-                // allowed transitions
-                if(timer.seconds() > 1.0){
+                if(timer.seconds()> 1.0){
                     currentState = RobotState.BASKET_4;
                     timer.reset();
                 }
                 break;
 
             case BASKET_4:
-                // immediate actions
                 wristTarget = WRIST_DOWN;
-                
-                if(timer.seconds() > 1.0){
+
+                if(timer.seconds()>1.0){
                     slideTarget = SLIDE_MIN;
                     shoulderTarget = SHOULDER_MAX;
                 }
-                
-                // allowed transitions
+
                 if(timer.seconds()>2.0){
                     currentState = RobotState.HOME;
                     timer.reset();
                 }
+
                 break;
 
             default:
                 currentState = RobotState.UNKNOWN;
+
                 break;
         }
         telemetry.addData("State Machine", "Current state: %s", currentState);
     }
-
     public void moveWrist() {
         wrist.setPosition(wristTarget);
         // telemetry.addData("Wrist Current / Target ", "(%.2f)", wristTarget);
