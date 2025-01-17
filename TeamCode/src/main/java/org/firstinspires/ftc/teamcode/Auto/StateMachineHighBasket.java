@@ -12,6 +12,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 @Autonomous (name = "State Machine High Basket")
 public class StateMachineHighBasket extends LinearOpMode {
 
+    //error values
     // Variables for PID Controller
 
     double kP = 0.0024; // bigger the error the faster we will fix it
@@ -63,6 +64,7 @@ public class StateMachineHighBasket extends LinearOpMode {
     final double SHOULDER_POSITION_THRESHOLD = 500;
 
     // Initial Targets
+    // Target States
     RobotState currentState = RobotState.HOME;
     RobotState requestedState = RobotState.HOME;
     // TODO: this assumes we have a block at the start
