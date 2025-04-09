@@ -1,108 +1,75 @@
 package org.firstinspires.ftc.teamcode;
 
+import android.util.Size;
+
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.util.SortOrder;
+
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvWebcam;
-import org.openftc.easyopencv.OpenCvPipeline;
+import org.firstinspires.ftc.vision.VisionPortal;
+import org.firstinspires.ftc.vision.opencv.ColorBlobLocatorProcessor;
+import org.firstinspires.ftc.vision.opencv.ColorRange;
+import org.firstinspires.ftc.vision.opencv.ImageRegion;
+import org.opencv.core.RotatedRect;
 
-import org.opencv.core.*;
-import org.opencv.imgproc.Imgproc;
-
-import java.util.ArrayList;
 import java.util.List;
 
-@TeleOp(name = "Camera to Servo Angle")
-public class CameraToServoOpMode extends LinearOpMode {
-
-    private OpenCvWebcam webcam;
-    private Servo servo;
-    private BlueObjectPipeline pipeline;
-
+@TeleOp(name = "VisionLocaterTest", group = "Concept")
+public class VisionLocaterTest extends LinearOpMode
+{
+    
+    RotatedRect rect;
     @Override
-    public void runOpMode() throws InterruptedException {
-        // Hardware map
-        servo = hardwareMap.get(Servo.class, "servo");
+    public void runOpMode()
+    {
+        
+        ColorBlobLocatorProcessor colorLocator = new ColorBlobLocatorProcessor.Builder()
+                .setTargetColorRange(ColorRange.BLUE)         // use a predefined color match
+                .setContourMode(ColorBlobLocatorProcessor.ContourMode.EXTERNAL_ONLY)    // exclude blobs inside blobs
+                .setRoi(ImageRegion.asUnityCenterCoordinates(-0.8, 0.8, 0.8, -0.8))  // search central 1/4 of camera view
+                .setDrawContours(true)                        // Show contours on the Stream Preview
+                .setBlurSize(5)                               // Smooth the transitions between different colors in image
+                .build();
 
-        // Camera setup
-        int cameraMonitorViewId = hardwareMap.appContext.getResources()
-                .getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "camera"), cameraMonitorViewId);
+        
+        VisionPortal portal = new VisionPortal.Builder()
+                .addProcessor(colorLocator)
+                .setCameraResolution(new Size(320, 240))
+                .setCamera(hardwareMap.get(WebcamName.class, "camera"))
+                .build();
 
-        pipeline = new BlueObjectPipeline();
-        webcam.setPipeline(pipeline);
-        webcam.openCameraDeviceAsync(() -> webcam.startStreaming(320, 240, OpenCvCameraRotation.UPRIGHT));
+        telemetry.setMsTransmissionInterval(50);   // Speed up telemetry updates, Just use for debugging.
+        telemetry.setDisplayFormat(Telemetry.DisplayFormat.MONOSPACE);
 
-        telemetry.addLine("Waiting for start...");
-        telemetry.update();
-        waitForStart();
+        // WARNING:  To be able to view the stream preview on the Driver Station, this code runs in INIT mode.
+        while (opModeIsActive() || opModeInInit())
+        {
+            telemetry.addData("preview on/off", "... Camera Stream\n");
 
-        while (opModeIsActive()) {
-            double angle = pipeline.getDetectedAngle();
+            // Read the current list
+            List<ColorBlobLocatorProcessor.Blob> blobs = colorLocator.getBlobs();
 
-            // Map angle (-90 to +90) → servo position (0.0 to 1.0)
-            double servoPos = (angle + 90) / 180.0;
-            servoPos = Math.max(0.0, Math.min(1.0, servoPos));  // Clamp to valid range
+            ColorBlobLocatorProcessor.Util.filterByArea(50, 20000, blobs);  // filter out very small blobs.
 
-            servo.setPosition(servoPos);
+            telemetry.addLine(" Area Density Aspect  Center");
 
-            telemetry.addData("Angle", angle);
-            telemetry.addData("Servo Pos", servoPos);
-            telemetry.update();
-
-            sleep(20); // Reduce CPU usage
-        }
-
-        webcam.stopStreaming();
-    }
-
-    // ===== Pipeline Class =====
-    class BlueObjectPipeline extends OpenCvPipeline {
-
-        private double detectedAngle = 0;
-
-        @Override
-        public Mat processFrame(Mat input) {
-            Mat hsv = new Mat();
-            Imgproc.cvtColor(input, hsv, Imgproc.COLOR_RGB2HSV);
-
-            // Blue HSV range
-            Scalar lowerBlue = new Scalar(100, 150, 0);
-            Scalar upperBlue = new Scalar(140, 255, 255);
-
-            Mat mask = new Mat();
-            Core.inRange(hsv, lowerBlue, upperBlue, mask);
-
-            List<MatOfPoint> contours = new ArrayList<>();
-            Mat hierarchy = new Mat();
-            Imgproc.findContours(mask, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-
-            if (!contours.isEmpty()) {
-                double maxArea = 0;
-                MatOfPoint maxContour = contours.get(0);
-
-                for (MatOfPoint contour : contours) {
-                    double area = Imgproc.contourArea(contour);
-                    if (area > maxArea) {
-                        maxArea = area;
-                        maxContour = contour;
-                    }
-                }
-
-                RotatedRect rect = Imgproc.minAreaRect(new MatOfPoint2f(maxContour.toArray()));
-                detectedAngle = rect.angle;
+            // Display the size (area) and center location for each Blob.
+            for(ColorBlobLocatorProcessor.Blob b : blobs)
+            {
+                this.rect = b.getBoxFit();
+                telemetry.addLine(String.format("%5d  %4.2f   %5.2f  (%3d,%3d)",
+                          b.getContourArea(), b.getDensity(), b.getAspectRatio(), (int) rect.center.x, (int) rect.center.y));
+            }
+            
+            if(rect != null){
+                telemetry.addData("Angle: ", rect.angle);
             }
 
-            return input;
-        }
-
-        public double getDetectedAngle() {
-            return detectedAngle;
+            telemetry.update();
+            sleep(50);
         }
     }
 }
-
